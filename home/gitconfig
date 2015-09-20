@@ -1,0 +1,24 @@
+[user]
+  name = Rafe Colburn
+  email = rafeco@gmail.com
+
+[color]
+  diff = auto
+  status = auto
+  branch = auto
+  ui = true
+
+[alias]
+  a = add
+  ap = add --patch
+  ci = commit
+  co = checkout
+  d = diff --color-words
+  s = diff --staged
+  gr = log --graph
+  go = log --graph --pretty=oneline --abbrev-commit
+  st = status -s -u
+  pr = pull --rebase
+  last = log -1 HEAD
+  unstage = reset HEAD --
+  wp = diff origin/master master
