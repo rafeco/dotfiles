@@ -1,10 +1,9 @@
 #!/bin/bash
 cd /workspaces/dotfiles
 git add -A
-git commit -m "Add Claude Code installation and PATH configuration
+git commit -m "Fix gitconfig: remove Codespaces-specific credentials
 
-- Automatically install Claude Code via install.sh
-- Add ~/.claude/bin to PATH in both bashrc and zshrc
-- Update README with Claude Code documentation
-- Support both Linux and macOS environments"
+- Remove hardcoded Codespaces credential helper (breaks on macOS)
+- Reset editor to vim (install.sh sets editor per environment)
+- install.sh already handles environment-specific git config"
 git push origin main
