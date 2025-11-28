@@ -85,3 +85,5 @@
   branches = branch -a
   tags = tag -l
   remotes = remote -v
+[credential]
+	helper = osxkeychain
