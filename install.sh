@@ -118,6 +118,21 @@ fi
 echo ""
 echo "Checking for required tools..."
 
+# Install Claude Code if not already installed
+if ! command -v claude &> /dev/null; then
+  echo "  Installing Claude Code..."
+  if curl -fsSL https://claude.ai/install.sh | bash; then
+    echo "  ✓ Claude Code installed successfully"
+    # Source the shell config to get claude in PATH for next steps
+    export PATH="$HOME/.claude/bin:$PATH"
+  else
+    echo "  ⚠️  Claude Code installation failed. You can install manually:"
+    echo "     curl -fsSL https://claude.ai/install.sh | bash"
+  fi
+else
+  echo "  ✓ Claude Code found"
+fi
+
 if ! command -v tmux &> /dev/null; then
   if [[ "$OS" == "Darwin" ]]; then
     echo "  ⚠️  tmux not found. Install with: brew install tmux"

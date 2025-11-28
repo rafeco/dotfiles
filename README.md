@@ -304,6 +304,55 @@ sudo apt-get install git tmux vim
 sudo apt-get install git tmux vim
 ```
 
+## Claude Code (AI Coding Agent)
+
+These dotfiles automatically install and configure **Claude Code**, Anthropic's AI coding agent CLI tool.
+
+### Automatic Installation
+
+The `install.sh` script will automatically install Claude Code for you:
+
+```bash
+./install.sh
+```
+
+### Manual Installation
+
+If you need to install Claude Code manually:
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+After installation, `claude` will be available in your terminal. The dotfiles automatically add `~/.claude/bin` to your PATH on both Linux and macOS.
+
+### Using Claude Code
+
+```bash
+# Use Claude Code for coding assistance
+claude "implement a binary search function"
+
+# Or just type claude to start an interactive session
+claude
+```
+
+### Other Claude Access Methods
+
+1. **Claude Web Console** - Visit [claude.ai](https://claude.ai)
+2. **Claude Desktop App** - Download from Anthropic's website for macOS, Windows, or Linux
+3. **Anthropic API** - For programmatic access, use the official SDK:
+   ```bash
+   # Install the official Anthropic SDK
+   npm install @anthropic-ai/sdk
+   # or for Python
+   pip install anthropic
+   ```
+4. **Set API Key** (if using the API directly):
+   - Add to your `~/.bashrc.local` or `~/.zshrc.local`:
+     ```bash
+     export ANTHROPIC_API_KEY="your-api-key-here"
+     ```
+
 ## Compatibility
 
 - **OS**: Linux, macOS (including Apple Silicon), WSL

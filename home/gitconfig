@@ -25,7 +25,7 @@
   ui = true
 
 [core]
-  editor = vim
+	editor = code --wait
   autocrlf = input
   # Codespaces compatibility
   pager = less -FRX
@@ -85,3 +85,9 @@
   branches = branch -a
   tags = tag -l
   remotes = remote -v
+[credential "https://github.com"]
+	helper = /.codespaces/bin/gitcredential_github.sh
+[credential "https://gist.github.com"]
+	helper = /.codespaces/bin/gitcredential_github.sh
+[credential]
+	helper = /.codespaces/bin/gitcredential_github.sh
