@@ -1,0 +1,225 @@
+# Modern Zsh configuration
+# Compatible with zsh 5.0+
+
+# History settings
+HISTSIZE=10000
+SAVEHIST=20000
+HISTFILE=~/.zsh_history
+setopt HIST_IGNORE_ALL_DUPS      # Remove older duplicate entries from history
+setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks from history items
+setopt INC_APPEND_HISTORY        # Save history entries as soon as they are entered
+setopt SHARE_HISTORY             # Share history between different instances
+setopt HIST_FIND_NO_DUPS         # Don't display duplicates in search
+
+# Directory navigation
+setopt AUTO_CD                   # cd by typing directory name if it's not a command
+setopt AUTO_PUSHD                # Make cd push the old directory onto the directory stack
+setopt PUSHD_IGNORE_DUPS         # Don't push multiple copies of the same directory
+setopt PUSHD_MINUS               # Swap meanings of +/- when used with a number
+
+# Completion
+autoload -Uz compinit
+compinit
+
+zstyle ':completion:*' menu select                                    # Menu-style completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'            # Case-insensitive completion
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"              # Colored completion
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*:descriptions' format '%B%d%b'
+zstyle ':completion:*:messages' format '%d'
+zstyle ':completion:*:warnings' format 'No matches for: %d'
+zstyle ':completion:*' group-name ''
+
+# Better completion for kill command
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
+
+# Colors
+export CLICOLOR=1
+export LSCOLORS=ExGxBxDxCxEgEdxbxgxcxd
+
+# Prompt with git branch
+autoload -Uz vcs_info
+precmd_vcs_info() { vcs_info }
+precmd_functions+=( precmd_vcs_info )
+setopt PROMPT_SUBST
+zstyle ':vcs_info:git:*' formats ' (%b)'
+zstyle ':vcs_info:*' enable git
+
+PROMPT='%F{green}%n@%m%f:%F{blue}%~%f%F{yellow}${vcs_info_msg_0_}%f%# '
+
+# Aliases
+alias ls='ls --color=auto 2>/dev/null || ls -G'
+alias ll='ls -lah'
+alias la='ls -A'
+alias l='ls -CF'
+
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+alias h='history'
+alias hg='history | grep'
+alias c='clear'
+
+# Git aliases
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gd='git diff'
+alias gl='git log --oneline --decorate --graph'
+alias gp='git push'
+alias gpl='git pull'
+
+# Safety aliases
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Directory navigation
+alias cdp='cd -'  # Go to previous directory
+alias d='dirs -v | head -10'  # Show directory stack
+
+# Directory aliases with numbers
+for i in {1..9}; do
+  alias "$i"="cd -$i"
+done
+
+# Make directory and cd into it
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+# Extract various archive formats
+extract() {
+  if [ -f "$1" ]; then
+    case "$1" in
+      *.tar.bz2)   tar xjf "$1"     ;;
+      *.tar.gz)    tar xzf "$1"     ;;
+      *.bz2)       bunzip2 "$1"     ;;
+      *.rar)       unrar x "$1"     ;;
+      *.gz)        gunzip "$1"      ;;
+      *.tar)       tar xf "$1"      ;;
+      *.tbz2)      tar xjf "$1"     ;;
+      *.tgz)       tar xzf "$1"     ;;
+      *.zip)       unzip "$1"       ;;
+      *.Z)         uncompress "$1"  ;;
+      *.7z)        7z x "$1"        ;;
+      *)           echo "'$1' cannot be extracted via extract()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+# Find process by name
+psgrep() {
+  ps aux | grep -v grep | grep -i -e VSZ -e "$@"
+}
+
+# Quick search in current directory
+search() {
+  find . -iname "*$@*" 2>/dev/null
+}
+
+# Better df output
+alias df='df -h'
+alias du='du -h'
+
+# Date shortcuts
+alias now='date +"%Y-%m-%d %H:%M:%S"'
+alias today='date +"%Y-%m-%d"'
+
+# Network
+alias ports='netstat -tulanp 2>/dev/null || netstat -an'
+alias myip='curl -s ifconfig.me'
+
+# Quick editing
+alias zshrc='${EDITOR:-vim} ~/.zshrc'
+alias reload='source ~/.zshrc'
+
+# macOS specific
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # Finder
+  alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
+  alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
+  
+  # Lock screen
+  alias afk='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
+  
+  # Update Homebrew
+  alias brewup='brew update && brew upgrade && brew cleanup'
+  
+  # Homebrew completions
+  if type brew &>/dev/null; then
+    FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+    autoload -Uz compinit
+    compinit
+  fi
+fi
+
+# Linux specific
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  alias update='sudo apt-get update && sudo apt-get upgrade'
+  alias install='sudo apt-get install'
+fi
+
+# Codespaces specific
+if [ -n "$CODESPACES" ]; then
+  alias browse='gh browse'
+  export EDITOR='code --wait'
+fi
+
+# Better less
+export LESS='-R -F -X'
+export LESSOPEN='|/usr/bin/lesspipe %s 2>&-'
+
+# Key bindings
+bindkey -e                                        # Emacs key bindings
+bindkey '^[[A' history-search-backward            # Up arrow
+bindkey '^[[B' history-search-forward             # Down arrow
+bindkey '^[[H' beginning-of-line                  # Home
+bindkey '^[[F' end-of-line                        # End
+bindkey '^[[3~' delete-char                       # Delete
+bindkey '^[[1;5C' forward-word                    # Ctrl+Right
+bindkey '^[[1;5D' backward-word                   # Ctrl+Left
+
+# Better word navigation
+autoload -U select-word-style
+select-word-style bash
+
+# Enable command correction
+setopt CORRECT
+
+# Enable globbing
+setopt EXTENDED_GLOB
+
+# Load local zshrc if it exists
+if [ -f "$HOME/.zshrc.local" ]; then
+  source "$HOME/.zshrc.local"
+fi
+
+# Load zsh plugins if they exist
+# Example: zsh-autosuggestions, zsh-syntax-highlighting
+if [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+  source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+if [ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+  source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
+
+# macOS zsh plugins via Homebrew
+if [[ "$OSTYPE" == "darwin"* ]] && type brew &>/dev/null; then
+  if [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+    source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  fi
+  
+  if [ -f "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+    source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+  fi
+fi

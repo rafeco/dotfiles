@@ -2,23 +2,100 @@
   name = Rafe Colburn
   email = rafeco@gmail.com
 
+[init]
+  defaultBranch = main
+
+[pull]
+  rebase = true
+
+[push]
+  default = simple
+  autoSetupRemote = true
+
+[fetch]
+  prune = true
+
+[rebase]
+  autoStash = true
+
 [color]
   diff = auto
   status = auto
   branch = auto
   ui = true
 
+[core]
+  editor = vim
+  autocrlf = input
+  # Codespaces compatibility
+  pager = less -FRX
+
+[diff]
+  colorMoved = zebra
+  algorithm = histogram
+
+[merge]
+  conflictstyle = zdiff3
+
 [alias]
+  # Short status
+  s = status -sb
+  st = status -s -u
+  
+  # Add
   a = add
   ap = add --patch
+  
+  # Commit
   ci = commit
+  amend = commit --amend
+  fixup = commit --fixup
+  
+  # Checkout and branch
   co = checkout
+  cob = checkout -b
+  sw = switch
+  swc = switch -c
+  
+  # Diff
   d = diff --color-words
-  s = diff --staged
+  ds = diff --staged
+  dc = diff --cached
+  
+  # Log
+  l = log --oneline --decorate
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
   gr = log --graph
   go = log --graph --pretty=oneline --abbrev-commit
-  st = status -s -u
-  pr = pull --rebase
   last = log -1 HEAD
+  
+  # Pull/Push
+  pr = pull --rebase
+  up = pull --rebase --autostash
+  
+  # Undo
   unstage = reset HEAD --
+  undo = reset --soft HEAD^
+  
+  # Worktree
+  wt = worktree
+  
+  # Compare branches
   wp = diff origin/master master
+  branches = branch -a
+  tags = tag -l
+  remotes = remote -v
+
+[credential]
+  # GitHub Codespaces uses credential helper
+  helper = 
+  helper = /.codespaces/bin/gitcredential_github.sh
+
+[credential "https://github.com"]
+  helper = 
+  helper = /.codespaces/bin/gitcredential_github.sh
+
+# GitHub CLI integration
+[credential "https://gist.github.com"]
+  helper = 
+  helper = /.codespaces/bin/gitcredential_github.sh

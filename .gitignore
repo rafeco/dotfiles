@@ -1,0 +1,18 @@
+# Backup files
+.dotfiles_backup_*
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Vim
+.vim/undo/
+.vim/.netrwhist
+
+# Test/temporary files
+test/
+tmp/

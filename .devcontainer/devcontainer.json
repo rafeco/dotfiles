@@ -1,0 +1,50 @@
+{
+  "name": "Development Environment with Dotfiles",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  // Features to install
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": false,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+
+  // Install additional tools
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y tmux vim curl wget && bash ${containerWorkspaceFolder}/install.sh",
+
+  // Configure VS Code settings
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          }
+        },
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "editor.formatOnSave": false
+      },
+      "extensions": [
+        "editorconfig.editorconfig",
+        "ms-vscode.makefile-tools"
+      ]
+    }
+  },
+
+  // Forward ports for common development servers
+  "forwardPorts": [3000, 4200, 5000, 8000, 8080],
+
+  // Use 'postAttachCommand' to run commands after the container is running
+  "postAttachCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+
+  // Comment out to connect as root instead
+  "remoteUser": "vscode"
+}

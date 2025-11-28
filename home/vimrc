@@ -1,26 +1,34 @@
+" Modern Vim configuration for GitHub Codespaces
+" Compatible with Vim 8+ and Neovim
+
 set nocompatible                " choose no compatibility with legacy vi
 syntax enable                   " Turn on syntax highlighting
 set encoding=utf-8              " Default text encoding
 set showcmd                     " display incomplete commands
 filetype plugin indent on       " load file type plugins + indentation
-set t_Co=256                    " Trying to get color schemes working remotely
 set nohlsearch                  " Search highlighting is super annoying
 
 set path=$PWD/**                " Set the path variable to the current working
                                 " directory to make :find work
 
-"" Color Scheme
+" Color Scheme
 set background=dark
 colorscheme pablo
 
-"" Whitespace
+" Enable true color support if available
+if has('termguicolors')
+  set termguicolors
+endif
+
+" Whitespace
 set nowrap                      " don't wrap lines
-set tabstop=2 shiftwidth=2      " a tab is two spaces (or set this to 4)
-set expandtab                   " use spaces, not tabs (optional)
+set tabstop=2 shiftwidth=2      " a tab is two spaces
+set expandtab                   " use spaces, not tabs
 set backspace=indent,eol,start  " backspace through everything in insert mode
 autocmd BufWritePre * :%s/\s\+$//e  " Strip trailing whitespace on save
 
-"" File completion
+" File completion
+set wildmenu                    " Enhanced command line completion
 set wildmode=list:longest       " Complete the longest common match and show
                                 " a list of possible matches
 
@@ -28,7 +36,7 @@ if exists("&wildignorecase")
   set wildignorecase            " Ignore case on autocomplete
 endif
 
-"" Ctags
+" Ctags
 set tags=./tags,tags;
 
 function! DelTagOfFile(file)
@@ -41,14 +49,24 @@ function! DelTagOfFile(file)
   let resp = system(cmd)
 endfunction
 
-"" Searching
+" Searching
 set hlsearch                    " highlight matches
 set incsearch                   " incremental searching
 set ignorecase                  " searches are case insensitive...
 set smartcase                   " ... unless they contain at least one capital letter
 
-"" statusline
-set laststatus=2
+" Line numbers
+set number                      " show line numbers
+set relativenumber              " relative line numbers for easier movement
+
+" Better display
+set laststatus=2                " always show status line
+set ruler                       " show cursor position
+set cursorline                  " highlight current line
+set scrolloff=3                 " keep 3 lines visible when scrolling
+set sidescrolloff=5             " keep 5 columns visible when scrolling
+
+" Status line
 set statusline=
 set statusline=%-3.3n           " buffer number
 set statusline+=%t              " tail of the filename
@@ -60,31 +78,68 @@ set statusline+=%c,             " cursor column
 set statusline+=%l/%L           " cursor line/total lines
 set statusline+=\ %P            " percent through file
 
-"" Prefs for MacVim
+" Modern improvements
+set mouse=a                     " enable mouse support in all modes
+set clipboard=unnamedplus       " use system clipboard
+set hidden                      " allow hidden buffers
+set updatetime=300              " faster completion
+set signcolumn=yes              " always show sign column
+set noshowmode                  " mode is shown in statusline
+
+" Better split behavior
+set splitbelow                  " horizontal splits below
+set splitright                  " vertical splits to the right
+
+" Undo persistence
+if has('persistent_undo')
+  set undofile
+  set undodir=~/.vim/undo
+  " Create undo directory if it doesn't exist
+  if !isdirectory(expand(&undodir))
+    call mkdir(expand(&undodir), 'p')
+  endif
+endif
+
+" Prefs for GUI (MacVim, GVim)
 if has('gui_running')
   set guifont=Source\ Code\ Pro:h13
   set guioptions-=T             " get rid of the toolbar
-  set number                    " show line numbers
 endif
 
-"" Tab stops, etc
+" Tab stops per filetype
 au BufRead,BufNewFile vsql.edit.* set filetype=sql
 au FileType php setl sw=4 sts=4 et
 au FileType python setl sw=4 sts=4 et
 au FileType java setl sw=4 sts=4 et
 au FileType scala setl sw=2 sts=2 et
 au FileType javascript setl sw=4 sts=4 et
-au Filetype markdown set wrap linebreak textwidth=0
-autocmd FileType php autocmd BufWritePre <buffer> :%s/\s\+$//e
-autocmd FileType ruby autocmd BufWritePre <buffer> :%s/\s\+$//e
+au FileType typescript setl sw=2 sts=2 et
+au FileType json setl sw=2 sts=2 et
+au FileType yaml setl sw=2 sts=2 et
+au FileType markdown set wrap linebreak textwidth=0
 
-"" Ignore files I never want to find
+" Strip trailing whitespace for specific filetypes
+autocmd FileType php,ruby,python,javascript,typescript autocmd BufWritePre <buffer> :%s/\s\+$//e
+
+" Ignore files
 set wildignore+=**/*.class
+set wildignore+=**/node_modules/**
+set wildignore+=**/.git/**
+set wildignore+=**/__pycache__/**
+set wildignore+=**/*.pyc
 
-"" Skeleton files
+" Skeleton files
 autocmd BufNewFile  *.py 0r ~/.vim/skel/skeleton.py
 
-"" PHP stuff
+" PHP stuff
 let php_sql_query=1
 let php_htmlInStrings=1
 let php_noShortTags = 1
+
+" Codespaces specific settings
+if !empty($CODESPACES)
+  " Codespaces uses cloud-based storage, disable swap files
+  set noswapfile
+  set nobackup
+  set nowritebackup
+endif
