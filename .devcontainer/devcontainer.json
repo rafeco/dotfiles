@@ -33,8 +33,8 @@
         "editor.formatOnSave": false
       },
       "extensions": [
-        "editorconfig.editorconfig",
-        "ms-vscode.makefile-tools"
+        "anthropics.claude-dev",
+        "editorconfig.editorconfig"
       ]
     }
   },
