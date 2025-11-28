@@ -136,7 +136,7 @@ else
 fi
 
 # Install Claude Code if not already installed
-if ! command -v claude &> /dev/null; then
+if [ ! -f "$HOME/.claude/bin/claude" ] && [ ! -f "$HOME/.local/bin/claude" ]; then
   echo ""
   echo "Installing Claude Code..."
   if curl -fsSL https://claude.ai/install.sh | bash; then
