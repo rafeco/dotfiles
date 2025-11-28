@@ -1,0 +1,17 @@
+# Ignore runtime and session data
+debug/
+downloads/
+file-history/
+history.jsonl
+plans/
+projects/
+session-env/
+shell-snapshots/
+statsig/
+todos/
+
+# Ignore plugins (installed per-machine)
+plugins/
+
+# Keep settings
+!settings.json

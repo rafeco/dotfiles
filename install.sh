@@ -42,6 +42,14 @@ for file in "$DOTFILES_DIR"/home/*; do
   fi
 done
 
+# Install Claude Code configuration
+echo ""
+echo "Installing Claude Code configuration..."
+mkdir -p "$HOME/.claude"
+if [ -f "$DOTFILES_DIR/.claude/settings.json" ]; then
+  link_file "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
+fi
+
 # Create necessary directories
 echo ""
 echo "Creating necessary directories..."
