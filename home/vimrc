@@ -13,7 +13,7 @@ set path=$PWD/**                " Set the path variable to the current working
 
 " Color Scheme
 set background=dark
-colorscheme pablo
+colorscheme evening
 
 " Enable true color support if available
 if has('termguicolors')

@@ -81,28 +81,23 @@ if __name__ == "__main__":
 EOF
 fi
 
-# Detect OS
+# Detect OS / container environment
 OS="$(uname -s)"
+IS_DOCKER=false
+if [ -f "/.dockerenv" ] || grep -qa docker /proc/1/cgroup 2>/dev/null; then
+  IS_DOCKER=true
+fi
+
 echo ""
 echo "Detected OS: $OS"
+if [ "$IS_DOCKER" = true ]; then
+  echo "Detected Docker container environment"
+fi
 
 # Codespaces-specific setup
 if [ -n "$CODESPACES" ]; then
   echo "Detected GitHub Codespaces environment"
-  echo "  Setting up Codespaces-specific configurations..."
-
-  # Ensure git credential helper is configured for Codespaces
-  if [ -f "/.codespaces/bin/gitcredential_github.sh" ]; then
-    git config --global --unset-all credential.helper 2>/dev/null || true
-    git config --global credential.helper "/.codespaces/bin/gitcredential_github.sh"
-    git config --global credential."https://github.com".helper "/.codespaces/bin/gitcredential_github.sh"
-    git config --global credential."https://gist.github.com".helper "/.codespaces/bin/gitcredential_github.sh"
-  fi
-
-  # Set VS Code as default editor if available
-  if command -v code &> /dev/null; then
-    git config --global core.editor "code --wait"
-  fi
+  echo "  Codespaces-specific Git settings will be applied automatically."
 fi
 
 # macOS-specific setup
@@ -110,21 +105,34 @@ if [[ "$OS" == "Darwin" ]]; then
   echo "Detected macOS environment"
   echo "  Setting up macOS-specific configurations..."
 
-  # On macOS, use osxkeychain for git credentials if not in Codespaces
-  if [ -z "$CODESPACES" ]; then
-    # Remove any existing credential helpers and set osxkeychain
-    git config --global --unset-all credential.helper 2>/dev/null || true
-    git config --global --remove-section credential."https://github.com" 2>/dev/null || true
-    git config --global --remove-section credential."https://gist.github.com" 2>/dev/null || true
-    git config --global credential.helper osxkeychain
-  fi
-
   # Check for Homebrew
   if command -v brew &> /dev/null; then
     echo "  ✓ Homebrew found"
   else
     echo "  ⚠️  Homebrew not found. Install from https://brew.sh"
   fi
+fi
+
+# Configure platform-specific Git settings
+echo ""
+echo "Configuring platform-specific Git settings..."
+PLATFORM_GITCONFIG=""
+if [ -n "$CODESPACES" ] && [ -f "$DOTFILES_DIR/platform/gitconfig.codespaces" ]; then
+  PLATFORM_GITCONFIG="$DOTFILES_DIR/platform/gitconfig.codespaces"
+elif [[ "$OS" == "Darwin" ]] && [ -f "$DOTFILES_DIR/platform/gitconfig.macos" ]; then
+  PLATFORM_GITCONFIG="$DOTFILES_DIR/platform/gitconfig.macos"
+elif [[ "$OS" == "Linux" ]] && [ -f "$DOTFILES_DIR/platform/gitconfig.linux" ]; then
+  PLATFORM_GITCONFIG="$DOTFILES_DIR/platform/gitconfig.linux"
+fi
+
+if [ -n "$PLATFORM_GITCONFIG" ]; then
+  link_file "$PLATFORM_GITCONFIG" "$HOME/.gitconfig.platform"
+  echo "  Applied $(basename "$PLATFORM_GITCONFIG")"
+else
+  if [ ! -f "$HOME/.gitconfig.platform" ]; then
+    touch "$HOME/.gitconfig.platform"
+  fi
+  echo "  No platform override found. Using ~/.gitconfig.platform as a local override."
 fi
 
 # Check for required tools and provide helpful messages

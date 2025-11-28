@@ -23,7 +23,7 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
 - Auto-rebase on pull with autostash
 - Histogram diff, zdiff3 merge conflicts
 - Useful aliases: `lg` (graph log), `s` (status), `up` (pull+rebase), `sw/swc` (switch branches), `amend`
-- Codespaces credential helper integration
+- Platform-specific credential helper via `.gitconfig.platform` (macOS keychain, Linux/Docker cache, Codespaces helper)
 
 ### Bash (`home/bashrc`)
 - Smart history (10k, no duplicates)
@@ -78,7 +78,8 @@ Git is required; tmux and vim are optional.
 
 ## Customization
 
-Edit files in `home/` and re-run `./install.sh` to update.
+Edit files in `home/` and re-run `./install.sh` to update.  
+Use `~/.gitconfig.local` for personal Git overrides—it's included automatically and never touched by the installer.
 
 ## License
 

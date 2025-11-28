@@ -85,5 +85,8 @@
   branches = branch -a
   tags = tag -l
   remotes = remote -v
-[credential]
-	helper = osxkeychain
+[include]
+  path = ~/.gitconfig.platform
+
+[include]
+  path = ~/.gitconfig.local

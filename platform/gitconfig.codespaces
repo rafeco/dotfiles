@@ -1,0 +1,12 @@
+# GitHub Codespaces-specific Git configuration
+[core]
+  editor = code --wait
+
+[credential]
+  helper = /.codespaces/bin/gitcredential_github.sh
+
+[credential "https://github.com"]
+  helper = /.codespaces/bin/gitcredential_github.sh
+
+[credential "https://gist.github.com"]
+  helper = /.codespaces/bin/gitcredential_github.sh
