@@ -97,6 +97,8 @@ if [[ "$OS" == "Darwin" ]]; then
 
   # On macOS, use osxkeychain for git credentials if not in Codespaces
   if [ -z "$CODESPACES" ]; then
+    # Remove any existing credential helpers and set osxkeychain
+    git config --global --unset-all credential.helper 2>/dev/null || true
     git config --global credential.helper osxkeychain
   fi
 
