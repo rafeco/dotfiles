@@ -4,6 +4,12 @@ Modern dotfiles for Git, Bash, Zsh, tmux, and Vim. Works on macOS, Linux, and Gi
 
 ## Quick Start
 
+**One-line install:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/rafeco/dotfiles/main/bootstrap.sh | bash
+```
+
+**Or clone manually:**
 ```bash
 git clone https://github.com/rafeco/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles

@@ -135,13 +135,10 @@ else
   echo "  No platform override found. Using ~/.gitconfig.platform as a local override."
 fi
 
-# Check for required tools and provide helpful messages
-echo ""
-echo "Checking for required tools..."
-
 # Install Claude Code if not already installed
 if ! command -v claude &> /dev/null; then
-  echo "  Installing Claude Code..."
+  echo ""
+  echo "Installing Claude Code..."
   if curl -fsSL https://claude.ai/install.sh | bash; then
     echo "  ✓ Claude Code installed successfully"
     # Source the shell config to get claude in PATH for next steps
@@ -150,38 +147,6 @@ if ! command -v claude &> /dev/null; then
     echo "  ⚠️  Claude Code installation failed. You can install manually:"
     echo "     curl -fsSL https://claude.ai/install.sh | bash"
   fi
-else
-  echo "  ✓ Claude Code found"
-fi
-
-if ! command -v tmux &> /dev/null; then
-  if [[ "$OS" == "Darwin" ]]; then
-    echo "  ⚠️  tmux not found. Install with: brew install tmux"
-  else
-    echo "  ⚠️  tmux not found. Install with: sudo apt-get install tmux"
-  fi
-else
-  echo "  ✓ tmux found"
-fi
-
-if ! command -v vim &> /dev/null; then
-  if [[ "$OS" == "Darwin" ]]; then
-    echo "  ⚠️  vim not found. Install with: brew install vim"
-  else
-    echo "  ⚠️  vim not found. Install with: sudo apt-get install vim"
-  fi
-else
-  echo "  ✓ vim found"
-fi
-
-if ! command -v git &> /dev/null; then
-  if [[ "$OS" == "Darwin" ]]; then
-    echo "  ⚠️  git not found. Install Xcode Command Line Tools"
-  else
-    echo "  ⚠️  git not found. Install with: sudo apt-get install git"
-  fi
-else
-  echo "  ✓ git found"
 fi
 
 echo ""
@@ -197,26 +162,10 @@ fi
 
 # Provide next steps
 echo ""
-echo "Next steps:"
+echo "Restart your shell to apply changes:"
 if [[ "$OS" == "Darwin" ]]; then
-  echo "  1. Restart your shell or run: source ~/.zshrc (or ~/.bash_profile)"
+  echo "  source ~/.zshrc (or ~/.bash_profile)"
 else
-  echo "  1. Restart your shell or run: source ~/.bashrc"
+  echo "  source ~/.bashrc"
 fi
-echo "  2. Start tmux with: tmux"
-echo "  3. Open vim to test: vim"
 echo ""
-
-if [ -n "$CODESPACES" ]; then
-  echo "For GitHub Codespaces:"
-  echo "  - Your git credentials are automatically configured"
-  echo "  - tmux and vim are ready to use"
-  echo "  - Restart your terminal to apply changes"
-  echo ""
-elif [[ "$OS" == "Darwin" ]]; then
-  echo "For macOS:"
-  echo "  - Git credential helper set to osxkeychain"
-  echo "  - If using iTerm2, enable tmux integration for best experience"
-  echo "  - Consider installing additional tools with Homebrew"
-  echo ""
-fi
