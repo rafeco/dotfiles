@@ -85,17 +85,3 @@
   branches = branch -a
   tags = tag -l
   remotes = remote -v
-
-[credential]
-  # GitHub Codespaces uses credential helper
-  helper = 
-  helper = /.codespaces/bin/gitcredential_github.sh
-
-[credential "https://github.com"]
-  helper = 
-  helper = /.codespaces/bin/gitcredential_github.sh
-
-# GitHub CLI integration
-[credential "https://gist.github.com"]
-  helper = 
-  helper = /.codespaces/bin/gitcredential_github.sh

@@ -80,8 +80,10 @@ if [ -n "$CODESPACES" ]; then
 
   # Ensure git credential helper is configured for Codespaces
   if [ -f "/.codespaces/bin/gitcredential_github.sh" ]; then
-    git config --global credential.helper ""
+    git config --global --unset-all credential.helper 2>/dev/null || true
     git config --global credential.helper "/.codespaces/bin/gitcredential_github.sh"
+    git config --global credential."https://github.com".helper "/.codespaces/bin/gitcredential_github.sh"
+    git config --global credential."https://gist.github.com".helper "/.codespaces/bin/gitcredential_github.sh"
   fi
 
   # Set VS Code as default editor if available
@@ -99,6 +101,8 @@ if [[ "$OS" == "Darwin" ]]; then
   if [ -z "$CODESPACES" ]; then
     # Remove any existing credential helpers and set osxkeychain
     git config --global --unset-all credential.helper 2>/dev/null || true
+    git config --global --remove-section credential."https://github.com" 2>/dev/null || true
+    git config --global --remove-section credential."https://gist.github.com" 2>/dev/null || true
     git config --global credential.helper osxkeychain
   fi
 
