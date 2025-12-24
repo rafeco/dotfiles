@@ -16,3 +16,6 @@
 # Test/temporary files
 test/
 tmp/
+
+# GitHub account switcher config (contains personal info)
+.gh-accounts

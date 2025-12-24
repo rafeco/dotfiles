@@ -126,6 +126,73 @@ search() {
   find . -iname "*$@*" 2>/dev/null
 }
 
+# GitHub account switching
+# Configuration stored in ~/.gh-accounts (not tracked in git)
+
+gh-setup() {
+  echo "GitHub Account Switcher Setup"
+  echo "=============================="
+  echo
+
+  # Load existing config if it exists
+  if [[ -f ~/.gh-accounts ]]; then
+    source ~/.gh-accounts
+    echo "Current configuration found. Press Enter to keep current values."
+    echo
+  fi
+
+  # Use vared for editable input with defaults in zsh
+  personal_user="${PERSONAL_GH_USER}"
+  personal_email="${PERSONAL_GIT_EMAIL}"
+  work_user="${WORK_GH_USER}"
+  work_email="${WORK_GIT_EMAIL}"
+
+  vared -p "Personal gh username: " personal_user
+  vared -p "Personal git email: " personal_email
+  vared -p "Work gh username: " work_user
+  vared -p "Work git email: " work_email
+
+  cat > ~/.gh-accounts <<EOF
+PERSONAL_GH_USER=$personal_user
+PERSONAL_GIT_EMAIL=$personal_email
+WORK_GH_USER=$work_user
+WORK_GIT_EMAIL=$work_email
+EOF
+
+  echo
+  echo "✓ Configuration saved to ~/.gh-accounts"
+  echo "You can now use gh-personal and gh-work commands"
+}
+
+gh-personal() {
+  if [[ ! -f ~/.gh-accounts ]]; then
+    echo "⚠ Configuration not found. Run 'gh-setup' first."
+    return 1
+  fi
+
+  source ~/.gh-accounts
+  gh auth switch --user "$PERSONAL_GH_USER"
+  git config --global user.email "$PERSONAL_GIT_EMAIL"
+  echo "✓ Switched to personal account ($PERSONAL_GH_USER / $PERSONAL_GIT_EMAIL)"
+}
+
+gh-work() {
+  if [[ ! -f ~/.gh-accounts ]]; then
+    echo "⚠ Configuration not found. Run 'gh-setup' first."
+    return 1
+  fi
+
+  source ~/.gh-accounts
+  gh auth switch --user "$WORK_GH_USER"
+  git config --global user.email "$WORK_GIT_EMAIL"
+  echo "✓ Switched to work account ($WORK_GH_USER / $WORK_GIT_EMAIL)"
+}
+
+gh-whoami() {
+  echo "gh account: $(gh api user --jq .login 2>/dev/null || echo 'not authenticated')"
+  echo "git user: $(git config --global user.name) <$(git config --global user.email)>"
+}
+
 # Better df output
 alias df='df -h'
 alias du='du -h'
