@@ -45,6 +45,14 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
 - Arrow key history search
 - Plugin support (zsh-autosuggestions, zsh-syntax-highlighting)
 
+### GitHub Account Switching
+- Easy switching between personal and work GitHub accounts
+- `gh-setup` - Interactive configuration wizard
+- `gh-work` / `gh-personal` - Switch between accounts
+- `gh-whoami` - Display current account status
+- Automatically updates both gh CLI and git user email
+- Configuration stored in `~/.gh-accounts` (not tracked in git)
+
 ### tmux (`home/tmux.conf`)
 - Prefix: `Ctrl-\`
 - Mouse support enabled
