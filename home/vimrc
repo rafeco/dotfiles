@@ -13,7 +13,7 @@ set path=$PWD/**                " Set the path variable to the current working
 
 " Color Scheme
 set background=dark
-colorscheme evening
+colorscheme desert
 
 " Enable true color support if available
 if has('termguicolors')
@@ -102,8 +102,12 @@ endif
 
 " Prefs for GUI (MacVim, GVim)
 if has('gui_running')
-  set guifont=Source\ Code\ Pro:h13
+  set guifont=Fira\ Code:h16
   set guioptions-=T             " get rid of the toolbar
+  set guioptions-=r             " remove right scrollbar
+  set guioptions-=L             " remove left scrollbar
+  set lines=50 columns=120      " comfortable window size
+  set linespace=2               " add a bit of space between lines
 endif
 
 " Tab stops per filetype
