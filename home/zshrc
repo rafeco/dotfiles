@@ -46,7 +46,7 @@ setopt PROMPT_SUBST
 zstyle ':vcs_info:git:*' formats ' (%b)'
 zstyle ':vcs_info:*' enable git
 
-PROMPT='%F{green}%n@%m%f:%F{blue}%~%f%F{yellow}${vcs_info_msg_0_}%f%# '
+PROMPT='%F{cyan}%n@%m%f:%F{magenta}%~%f%F{yellow}${vcs_info_msg_0_}%f%# '
 
 # Aliases
 alias ls='ls --color=auto'
