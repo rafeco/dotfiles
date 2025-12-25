@@ -49,7 +49,7 @@ zstyle ':vcs_info:*' enable git
 PROMPT='%F{green}%n@%m%f:%F{blue}%~%f%F{yellow}${vcs_info_msg_0_}%f%# '
 
 # Aliases
-alias ls='ls --color=auto 2>/dev/null || ls -G'
+alias ls='ls --color=auto'
 alias ll='ls -lah'
 alias la='ls -A'
 alias l='ls -CF'
@@ -211,16 +211,21 @@ alias reload='source ~/.zshrc'
 
 # macOS specific
 if [[ "$OSTYPE" == "darwin"* ]]; then
+  # Use GNU coreutils instead of BSD versions for cross-platform consistency
+  if type brew &>/dev/null && [ -d "$(brew --prefix)/opt/coreutils/libexec/gnubin" ]; then
+    export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
+  fi
+
   # Finder
   alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
   alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
-  
+
   # Lock screen
   alias afk='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
-  
+
   # Update Homebrew
   alias brewup='brew update && brew upgrade && brew cleanup'
-  
+
   # Homebrew completions
   if type brew &>/dev/null; then
     FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"

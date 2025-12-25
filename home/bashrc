@@ -39,7 +39,7 @@ else
 fi
 
 # Aliases
-alias ls='ls --color=auto 2>/dev/null || ls -G'
+alias ls='ls --color=auto'
 alias ll='ls -lah'
 alias la='ls -A'
 alias l='ls -CF'
@@ -185,13 +185,18 @@ alias myip='curl -s ifconfig.me'
 
 # macOS specific
 if [[ "$OSTYPE" == "darwin"* ]]; then
+  # Use GNU coreutils instead of BSD versions for cross-platform consistency
+  if type brew &>/dev/null && [ -d "$(brew --prefix)/opt/coreutils/libexec/gnubin" ]; then
+    export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
+  fi
+
   # Finder
   alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
   alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
-  
+
   # Lock screen
   alias afk='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
-  
+
   # Update Homebrew
   alias brewup='brew update && brew upgrade && brew cleanup'
 fi
