@@ -80,7 +80,6 @@ set statusline+=\ %P            " percent through file
 
 " Modern improvements
 set mouse=a                     " enable mouse support in all modes
-set clipboard=unnamedplus       " use system clipboard
 set hidden                      " allow hidden buffers
 set updatetime=300              " faster completion
 set signcolumn=yes              " always show sign column
