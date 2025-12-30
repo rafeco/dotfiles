@@ -1,6 +1,6 @@
 [user]
   name = Rafe Colburn
-  email = rafeco@gmail.com
+	email = rcolburn@etsy.com
 
 [init]
   defaultBranch = main
@@ -85,6 +85,10 @@
   branches = branch -a
   tags = tag -l
   remotes = remote -v
+[credential "https://github.com"]
+  helper =
+  helper = !/opt/homebrew/bin/gh auth git-credential
+
 [include]
   path = ~/.gitconfig.platform
 
