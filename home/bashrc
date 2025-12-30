@@ -110,6 +110,38 @@ search() {
   find . -iname "*$@*" 2>/dev/null
 }
 
+# Python virtual environment helper
+venv() {
+  # If a virtual environment is already active, deactivate it
+  if [ -n "$VIRTUAL_ENV" ]; then
+    deactivate
+    echo "✓ Deactivated virtual environment"
+    return 0
+  fi
+
+  # Check for existing virtual environments
+  if [ -d ".venv" ]; then
+    source .venv/bin/activate
+    echo "✓ Activated virtual environment (.venv)"
+  elif [ -d "venv" ]; then
+    source venv/bin/activate
+    echo "✓ Activated virtual environment (venv)"
+  else
+    echo "No virtual environment found in current directory."
+    read -p "Create one in .venv? [y/N] " response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+      python3 -m venv .venv
+      if [ $? -eq 0 ]; then
+        source .venv/bin/activate
+        echo "✓ Created and activated virtual environment (.venv)"
+      else
+        echo "✗ Failed to create virtual environment"
+        return 1
+      fi
+    fi
+  fi
+}
+
 # GitHub account switching
 # Configuration stored in ~/.gh-accounts (not tracked in git)
 
