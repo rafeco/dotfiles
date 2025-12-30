@@ -35,7 +35,7 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
 - Smart history (10k, no duplicates)
 - Git-aware prompt with branch display
 - Aliases: `ll`, `..`, `...`, git shortcuts (`gs`, `ga`, `gc`, `gd`, `gl`)
-- Functions: `mkcd`, `extract`, `psgrep`, `search`
+- Functions: `mkcd`, `extract`, `psgrep`, `search`, `venv`
 - Platform detection for macOS/Linux
 
 ### Zsh (`home/zshrc`)
@@ -44,6 +44,13 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
 - Auto-cd, directory stack (`d`, `1`, `2`)
 - Arrow key history search
 - Plugin support (zsh-autosuggestions, zsh-syntax-highlighting)
+
+### Python Virtual Environments
+- `venv` - Smart virtual environment management
+  - Toggle activation/deactivation with a single command
+  - Automatically finds `.venv` or `venv` directories
+  - Offers to create `.venv` if none exists
+  - Properly manages PATH to prioritize installed packages
 
 ### GitHub Account Switching
 - Easy switching between personal and work GitHub accounts
