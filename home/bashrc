@@ -73,76 +73,12 @@ alias mv='mv -i'
 # Directory navigation
 alias cdp='cd -'  # Go to previous directory
 
-# Make directory and cd into it
-mkcd() {
-  mkdir -p "$1" && cd "$1"
-}
+# Load shared shell functions
+if [ -f "$HOME/.shell_functions" ]; then
+  source "$HOME/.shell_functions"
+fi
 
-# Extract various archive formats
-extract() {
-  if [ -f "$1" ]; then
-    case "$1" in
-      *.tar.bz2)   tar xjf "$1"     ;;
-      *.tar.gz)    tar xzf "$1"     ;;
-      *.bz2)       bunzip2 "$1"     ;;
-      *.rar)       unrar x "$1"     ;;
-      *.gz)        gunzip "$1"      ;;
-      *.tar)       tar xf "$1"      ;;
-      *.tbz2)      tar xjf "$1"     ;;
-      *.tgz)       tar xzf "$1"     ;;
-      *.zip)       unzip "$1"       ;;
-      *.Z)         uncompress "$1"  ;;
-      *.7z)        7z x "$1"        ;;
-      *)           echo "'$1' cannot be extracted via extract()" ;;
-    esac
-  else
-    echo "'$1' is not a valid file"
-  fi
-}
-
-# Find process by name
-psgrep() {
-  ps aux | grep -v grep | grep -i -e VSZ -e "$@"
-}
-
-# Quick search in current directory
-search() {
-  find . -iname "*$@*" 2>/dev/null
-}
-
-# Python virtual environment helper
-venv() {
-  # If a virtual environment is already active, deactivate it
-  if [ -n "$VIRTUAL_ENV" ]; then
-    deactivate
-    echo "✓ Deactivated virtual environment"
-    return 0
-  fi
-
-  # Check for existing virtual environments
-  if [ -d ".venv" ]; then
-    source .venv/bin/activate
-    echo "✓ Activated virtual environment (.venv)"
-  elif [ -d "venv" ]; then
-    source venv/bin/activate
-    echo "✓ Activated virtual environment (venv)"
-  else
-    echo "No virtual environment found in current directory."
-    read -p "Create one in .venv? [y/N] " response
-    if [[ "$response" =~ ^[Yy]$ ]]; then
-      python3 -m venv .venv
-      if [ $? -eq 0 ]; then
-        source .venv/bin/activate
-        echo "✓ Created and activated virtual environment (.venv)"
-      else
-        echo "✗ Failed to create virtual environment"
-        return 1
-      fi
-    fi
-  fi
-}
-
-# GitHub account switching
+# GitHub account switching (bash-specific setup)
 # Configuration stored in ~/.gh-accounts (not tracked in git)
 
 gh-setup() {
@@ -174,34 +110,6 @@ EOF
   echo "You can now use gh-personal and gh-work commands"
 }
 
-gh-personal() {
-  if [[ ! -f ~/.gh-accounts ]]; then
-    echo "⚠ Configuration not found. Run 'gh-setup' first."
-    return 1
-  fi
-
-  source ~/.gh-accounts
-  gh auth switch --user "$PERSONAL_GH_USER"
-  git config --global user.email "$PERSONAL_GIT_EMAIL"
-  echo "✓ Switched to personal account ($PERSONAL_GH_USER / $PERSONAL_GIT_EMAIL)"
-}
-
-gh-work() {
-  if [[ ! -f ~/.gh-accounts ]]; then
-    echo "⚠ Configuration not found. Run 'gh-setup' first."
-    return 1
-  fi
-
-  source ~/.gh-accounts
-  gh auth switch --user "$WORK_GH_USER"
-  git config --global user.email "$WORK_GIT_EMAIL"
-  echo "✓ Switched to work account ($WORK_GH_USER / $WORK_GIT_EMAIL)"
-}
-
-gh-whoami() {
-  echo "gh account: $(gh api user --jq .login 2>/dev/null || echo 'not authenticated')"
-  echo "git user: $(git config --global user.name) <$(git config --global user.email)>"
-}
 
 # Better df output
 alias df='df -h'
