@@ -42,18 +42,26 @@ search() {
 venv() {
   # If a virtual environment is already active, deactivate it
   if [ -n "$VIRTUAL_ENV" ]; then
-    deactivate
+    # Remove the venv bin directory from PATH
+    if [ -n "$_VENV_ORIGINAL_PATH" ]; then
+      export PATH="$_VENV_ORIGINAL_PATH"
+      unset _VENV_ORIGINAL_PATH
+    fi
+    # Call standard deactivate if available
+    if type deactivate &>/dev/null; then
+      deactivate
+    fi
+    unset VIRTUAL_ENV
     echo "✓ Deactivated virtual environment"
     return 0
   fi
 
   # Check for existing virtual environments
+  local venv_path=""
   if [ -d ".venv" ]; then
-    source .venv/bin/activate
-    echo "✓ Activated virtual environment (.venv)"
+    venv_path=".venv"
   elif [ -d "venv" ]; then
-    source venv/bin/activate
-    echo "✓ Activated virtual environment (venv)"
+    venv_path="venv"
   else
     echo "No virtual environment found in current directory."
     echo -n "Create one in .venv? [y/N] "
@@ -61,13 +69,30 @@ venv() {
     if [[ "$response" =~ ^[Yy]$ ]]; then
       python3 -m venv .venv
       if [ $? -eq 0 ]; then
-        source .venv/bin/activate
-        echo "✓ Created and activated virtual environment (.venv)"
+        venv_path=".venv"
       else
         echo "✗ Failed to create virtual environment"
         return 1
       fi
+    else
+      return 0
     fi
+  fi
+
+  # Activate the virtual environment
+  if [ -n "$venv_path" ]; then
+    # Store original PATH for restoration on deactivation
+    export _VENV_ORIGINAL_PATH="$PATH"
+
+    # Add venv bin directory to PATH
+    export PATH="$(pwd)/$venv_path/bin:$PATH"
+    export VIRTUAL_ENV="$(pwd)/$venv_path"
+
+    # Also source the activate script for other environment setup
+    source "$venv_path/bin/activate"
+
+    echo "✓ Activated virtual environment ($venv_path)"
+    echo "  Scripts from installed packages are now on your PATH"
   fi
 }
 
