@@ -1,172 +1,307 @@
-# Modern Zsh configuration
-# Compatible with zsh 5.0+
+# ============================================================================
+# Modern Zsh Configuration
+# ============================================================================
+# Compatible with zsh 5.0+ (tested on 5.x)
+# Works on macOS, Linux, and GitHub Codespaces
+#
+# Zsh is a powerful shell that extends bash with:
+# - Better tab completion (with descriptions and menus)
+# - Smarter history sharing across sessions
+# - Advanced globbing and pattern matching
+# - Directory stack navigation
+# - Spelling correction
+# - Plugin ecosystem
+# ============================================================================
 
-# History settings
+# ============================================================================
+# HISTORY CONFIGURATION
+# ============================================================================
+# Zsh has more sophisticated history options than bash
+
+# Number of commands to remember in the current session
 HISTSIZE=10000
+
+# Number of commands to save to the history file
+# This persists across sessions
 SAVEHIST=20000
+
+# Location of the history file
 HISTFILE=~/.zsh_history
-setopt HIST_IGNORE_ALL_DUPS      # Remove older duplicate entries from history
-setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks from history items
-setopt INC_APPEND_HISTORY        # Save history entries as soon as they are entered
-setopt SHARE_HISTORY             # Share history between different instances
-setopt HIST_FIND_NO_DUPS         # Don't display duplicates in search
 
-# Directory navigation
-setopt AUTO_CD                   # cd by typing directory name if it's not a command
-setopt AUTO_PUSHD                # Make cd push the old directory onto the directory stack
-setopt PUSHD_IGNORE_DUPS         # Don't push multiple copies of the same directory
-setopt PUSHD_MINUS               # Swap meanings of +/- when used with a number
+# Remove older duplicate entries from history
+# If you run the same command multiple times, only the most recent is kept
+setopt HIST_IGNORE_ALL_DUPS
 
-# Completion
+# Remove superfluous blanks from history items
+# Cleans up commands with extra spaces before saving
+setopt HIST_REDUCE_BLANKS
+
+# Save history entries as soon as they are entered
+# Instead of waiting until the shell exits, commands are saved immediately
+# This is crucial for not losing history if a terminal crashes
+setopt INC_APPEND_HISTORY
+
+# Share history between all zsh sessions
+# When you run a command in one terminal, it becomes immediately available
+# in other terminals. This is a killer feature of zsh!
+setopt SHARE_HISTORY
+
+# Don't display duplicate entries when searching history
+# Keeps Ctrl-R searches clean by showing unique commands only
+setopt HIST_FIND_NO_DUPS
+
+# ============================================================================
+# DIRECTORY NAVIGATION
+# ============================================================================
+# Zsh makes it easier to move around your filesystem
+
+# cd by typing just the directory name
+# Instead of: cd ~/projects
+# Just type:  ~/projects
+# This only works if the name isn't an existing command
+setopt AUTO_CD
+
+# Make cd push the old directory onto the directory stack
+# Every time you cd, the previous directory is remembered
+# Access with: cd -1, cd -2, etc. (see numbered directory aliases below)
+setopt AUTO_PUSHD
+
+# Don't push multiple copies of the same directory
+# Prevents the stack from filling up with duplicates
+setopt PUSHD_IGNORE_DUPS
+
+# Swap meanings of +/- when used with a number in directory stack
+# Makes `cd -1` go to the most recent directory (more intuitive)
+setopt PUSHD_MINUS
+
+# ============================================================================
+# COMPLETION SYSTEM
+# ============================================================================
+# Zsh's completion is one of its best features
+
+# Load and initialize the completion system
 autoload -Uz compinit
 compinit
 
-zstyle ':completion:*' menu select                                    # Menu-style completion
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'            # Case-insensitive completion
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"              # Colored completion
+# Menu-style completion (use arrow keys to navigate)
+# Instead of cycling through options with Tab, you get a visual menu
+zstyle ':completion:*' menu select
+
+# Case-insensitive completion
+# Typing "dow<Tab>" will match "Downloads" even though case doesn't match
+# m:{a-zA-Z}={A-Za-z} means match lowercase to uppercase and vice versa
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# Colored completion (uses LS_COLORS)
+# Directories, executables, etc. are colored just like in ls
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# Verbose completion with descriptions
 zstyle ':completion:*' verbose yes
-zstyle ':completion:*:descriptions' format '%B%d%b'
+zstyle ':completion:*:descriptions' format '%B%d%b'      # Bold descriptions
 zstyle ':completion:*:messages' format '%d'
 zstyle ':completion:*:warnings' format 'No matches for: %d'
+
+# Group matches by category
 zstyle ':completion:*' group-name ''
 
 # Better completion for kill command
+# Shows processes in red and includes CPU usage, TTY, etc.
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
-# Colors
+# ============================================================================
+# COLORS
+# ============================================================================
+
+# Enable colors for ls and other commands (especially macOS)
 export CLICOLOR=1
+
+# Color scheme for ls on macOS/BSD
+# Ex: directories=blue, executables=red, etc.
 export LSCOLORS=ExGxBxDxCxEgEdxbxgxcxd
 
-# Prompt with git branch
+# ============================================================================
+# PROMPT WITH GIT INTEGRATION
+# ============================================================================
+# Zsh has built-in version control system (vcs) support
+
+# Load the version control system info module
 autoload -Uz vcs_info
+
+# Function to update vcs info before each prompt
 precmd_vcs_info() { vcs_info }
+
+# Add the function to the list that runs before each prompt
 precmd_functions+=( precmd_vcs_info )
+
+# Enable prompt substitution (allows variables in prompt)
 setopt PROMPT_SUBST
+
+# Configure git format for vcs_info
+# Shows: (branch-name)
 zstyle ':vcs_info:git:*' formats ' (%b)'
+
+# Only enable git (not svn, hg, etc.)
 zstyle ':vcs_info:*' enable git
 
+# Define the prompt
+# Format: user@host:directory (git-branch)$
+# Colors:
+#   %F{cyan}: Cyan text
+#   %f: Reset to default color
+#   %n: Username
+#   %m: Hostname
+#   %~: Current directory (with ~ for home)
+#   %#: # for root, % for normal user
 PROMPT='%F{cyan}%n@%m%f:%F{magenta}%~%f%F{yellow}${vcs_info_msg_0_}%f%# '
 
-# Aliases
+# ============================================================================
+# FILE & DIRECTORY ALIASES
+# ============================================================================
+
+# Make ls colorful (GNU/Linux style)
 alias ls='ls --color=auto'
+
+# List all files in long format with human-readable sizes
+# -l: long format, -a: show hidden, -h: human-readable sizes
 alias ll='ls -lah'
+
+# List almost all (excludes . and ..)
 alias la='ls -A'
+
+# List in columns with file type indicators
 alias l='ls -CF'
 
+# Enable colors in grep output
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
 
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
+# Directory navigation shortcuts
+alias ..='cd ..'                    # Go up one directory
+alias ...='cd ../..'                # Go up two directories
+alias ....='cd ../../..'            # Go up three directories
+alias cdp='cd -'                    # Go to previous directory
 
-alias h='history'
-alias hg='history | grep'
-alias c='clear'
+# Show directory stack (last 10 entries)
+# Each entry is numbered, allowing quick navigation with the number aliases below
+alias d='dirs -v | head -10'
 
-# Git aliases
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gd='git diff'
-alias gl='git log --oneline --decorate --graph'
-alias gp='git push'
-alias gpl='git pull'
-
-# Safety aliases
-alias rm='rm -i'
-alias cp='cp -i'
-alias mv='mv -i'
-
-# Directory navigation
-alias cdp='cd -'  # Go to previous directory
-alias d='dirs -v | head -10'  # Show directory stack
-
-# Directory aliases with numbers
+# Create numbered aliases for directory stack navigation
+# After using AUTO_PUSHD, you can type `1` to go to the most recent directory,
+# `2` for the second most recent, etc.
+# Usage: cd ~/projects, then cd ~/downloads, then type `1` to return to ~/projects
 for i in {1..9}; do
   alias "$i"="cd -$i"
 done
 
-# Load shared shell functions
+# ============================================================================
+# HISTORY & UTILITY ALIASES
+# ============================================================================
+
+alias h='history'                   # Show command history
+alias hg='history | grep'           # Search command history
+alias c='clear'                     # Clear the screen
+
+# ============================================================================
+# GIT ALIASES
+# ============================================================================
+# Quick shortcuts for common git commands
+
+alias gs='git status'                               # Show working tree status
+alias ga='git add'                                  # Stage files
+alias gc='git commit'                               # Create a commit
+alias gd='git diff'                                 # Show changes
+alias gl='git log --oneline --decorate --graph'     # Pretty log graph
+alias gp='git push'                                 # Push to remote
+alias gpl='git pull'                                # Pull from remote
+
+# ============================================================================
+# SAFETY ALIASES
+# ============================================================================
+# Prompt before overwriting or deleting files
+
+alias rm='rm -i'        # Prompt before deleting
+alias cp='cp -i'        # Prompt before overwriting
+alias mv='mv -i'        # Prompt before overwriting
+
+# ============================================================================
+# SYSTEM INFO ALIASES
+# ============================================================================
+
+# Show disk space in human-readable format
+alias df='df -h'
+alias du='du -h'
+
+# Date/time shortcuts
+alias now='date +"%Y-%m-%d %H:%M:%S"'   # Current timestamp
+alias today='date +"%Y-%m-%d"'          # Today's date
+
+# ============================================================================
+# NETWORK ALIASES
+# ============================================================================
+
+# Show open ports and connections
+alias ports='netstat -tulanp 2>/dev/null || netstat -an'
+
+# Get your public IP address
+alias myip='curl -s ifconfig.me'
+
+# ============================================================================
+# QUICK EDITING
+# ============================================================================
+
+# Edit zshrc with your preferred editor
+alias zshrc='${EDITOR:-vim} ~/.zshrc'
+
+# Reload zshrc without restarting the shell
+# Useful after making changes to this file
+alias reload='source ~/.zshrc'
+
+# ============================================================================
+# SHARED FUNCTIONS
+# ============================================================================
+# Load common shell functions used by both bash and zsh
+# These are defined in ~/.shell_functions and include:
+# - mkcd: Create and enter a directory
+# - extract: Smart archive extraction
+# - psgrep: Search running processes
+# - venv: Python virtual environment management
+# - gh-personal, gh-work: GitHub account switching
+
 if [ -f "$HOME/.shell_functions" ]; then
   source "$HOME/.shell_functions"
 fi
 
-# GitHub account switching (zsh-specific setup)
-# Configuration stored in ~/.gh-accounts (not tracked in git)
+# ============================================================================
+# PLATFORM-SPECIFIC CONFIGURATION
+# ============================================================================
 
-gh-setup() {
-  echo "GitHub Account Switcher Setup"
-  echo "=============================="
-  echo
-
-  # Load existing config if it exists
-  if [[ -f ~/.gh-accounts ]]; then
-    source ~/.gh-accounts
-    echo "Current configuration found. Press Enter to keep current values."
-    echo
-  fi
-
-  # Use vared for editable input with defaults in zsh
-  personal_user="${PERSONAL_GH_USER}"
-  personal_email="${PERSONAL_GIT_EMAIL}"
-  work_user="${WORK_GH_USER}"
-  work_email="${WORK_GIT_EMAIL}"
-
-  vared -p "Personal gh username: " personal_user
-  vared -p "Personal git email: " personal_email
-  vared -p "Work gh username: " work_user
-  vared -p "Work git email: " work_email
-
-  cat > ~/.gh-accounts <<EOF
-PERSONAL_GH_USER=$personal_user
-PERSONAL_GIT_EMAIL=$personal_email
-WORK_GH_USER=$work_user
-WORK_GIT_EMAIL=$work_email
-EOF
-
-  echo
-  echo "✓ Configuration saved to ~/.gh-accounts"
-  echo "You can now use gh-personal and gh-work commands"
-}
-
-
-# Better df output
-alias df='df -h'
-alias du='du -h'
-
-# Date shortcuts
-alias now='date +"%Y-%m-%d %H:%M:%S"'
-alias today='date +"%Y-%m-%d"'
-
-# Network
-alias ports='netstat -tulanp 2>/dev/null || netstat -an'
-alias myip='curl -s ifconfig.me'
-
-# Quick editing
-alias zshrc='${EDITOR:-vim} ~/.zshrc'
-alias reload='source ~/.zshrc'
-
-# macOS specific
+# ----------------------------------------------------------------------------
+# macOS Specific Settings
+# ----------------------------------------------------------------------------
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  # Use GNU coreutils instead of BSD versions for cross-platform consistency
+  # Use GNU coreutils instead of BSD versions
+  # macOS ships with BSD versions of commands (ls, grep, etc.) which have
+  # different flags and behavior than GNU/Linux versions. Installing coreutils
+  # via Homebrew gives you the GNU versions for cross-platform consistency.
   if type brew &>/dev/null && [ -d "$(brew --prefix)/opt/coreutils/libexec/gnubin" ]; then
     export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
   fi
 
-  # Finder
+  # Finder: Show/hide hidden files
   alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
   alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
 
-  # Lock screen
+  # Lock screen immediately
   alias afk='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
 
-  # Update Homebrew
+  # Update all Homebrew packages
   alias brewup='brew update && brew upgrade && brew cleanup'
 
   # Homebrew completions
+  # Adds completion for brew commands and all installed packages
   if type brew &>/dev/null; then
     FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
     autoload -Uz compinit
@@ -174,8 +309,11 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   fi
 fi
 
-# Linux specific
+# ----------------------------------------------------------------------------
+# Linux Specific Settings
+# ----------------------------------------------------------------------------
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  # Package management shortcuts (Debian/Ubuntu)
   if command -v sudo &>/dev/null; then
     alias update='sudo apt-get update && sudo apt-get upgrade'
     alias install='sudo apt-get install'
@@ -185,69 +323,188 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   fi
 fi
 
-# Codespaces specific
+# ----------------------------------------------------------------------------
+# GitHub Codespaces Specific Settings
+# ----------------------------------------------------------------------------
 if [ -n "$CODESPACES" ]; then
+  # Use 'gh browse' to open the repo in a browser
   alias browse='gh browse'
+
+  # Use VS Code as the default editor
   export EDITOR='code --wait'
 fi
 
-# Claude Code - add to PATH if installed
+# ============================================================================
+# ADDITIONAL TOOLS
+# ============================================================================
+
+# Add Claude Code to PATH if installed
 if [ -d "$HOME/.claude/bin" ]; then
   export PATH="$HOME/.claude/bin:$PATH"
 fi
+
+# Add ~/.local/bin to PATH if it exists and isn't already there
+# Many tools install to ~/.local/bin (pip, cargo, etc.)
 if [ -d "$HOME/.local/bin" ] && [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
   export PATH="$HOME/.local/bin:$PATH"
 fi
 
-# Anthropic API key (set in .bashrc.local or environment)
+# Anthropic API Key
+# Uncomment and set this if you're using Claude Code or the Anthropic API
+# Better: Set this in ~/.zshrc.local to keep it out of version control
 # export ANTHROPIC_API_KEY="your-key-here"
 
-# Better less
+# ============================================================================
+# PAGER CONFIGURATION
+# ============================================================================
+
+# Configure 'less' (the pager used by man, git, etc.)
+# - R: Show ANSI colors correctly
+# - F: Quit if output fits on one screen
+# - X: Don't clear screen when exiting
 export LESS='-R -F -X'
+
+# Lesspipe allows less to handle non-text files
 export LESSOPEN='|/usr/bin/lesspipe %s 2>&-'
 
-# Key bindings
-bindkey -e                                        # Emacs key bindings
-bindkey '^[[A' history-search-backward            # Up arrow
-bindkey '^[[B' history-search-forward             # Down arrow
-bindkey '^[[H' beginning-of-line                  # Home
-bindkey '^[[F' end-of-line                        # End
-bindkey '^[[3~' delete-char                       # Delete
-bindkey '^[[1;5C' forward-word                    # Ctrl+Right
-bindkey '^[[1;5D' backward-word                   # Ctrl+Left
+# ============================================================================
+# KEY BINDINGS
+# ============================================================================
+# Configure keyboard shortcuts for command line editing
 
-# Better word navigation
+# Use Emacs-style key bindings
+# If you prefer Vim bindings, use: bindkey -v
+bindkey -e
+
+# Arrow keys search history based on what you've typed
+# Type "git" and press Up to see only commands starting with "git"
+bindkey '^[[A' history-search-backward    # Up arrow
+bindkey '^[[B' history-search-forward     # Down arrow
+
+# Home and End keys
+bindkey '^[[H' beginning-of-line          # Home
+bindkey '^[[F' end-of-line                # End
+
+# Delete key
+bindkey '^[[3~' delete-char               # Delete
+
+# Word navigation with Ctrl+Arrow
+bindkey '^[[1;5C' forward-word            # Ctrl+Right
+bindkey '^[[1;5D' backward-word           # Ctrl+Left
+
+# ============================================================================
+# ZSH-SPECIFIC FEATURES
+# ============================================================================
+
+# Better word navigation (bash-style)
+# Determines what counts as a "word" for word-navigation commands
+# Without this, forward-word stops at every special character
 autoload -U select-word-style
 select-word-style bash
 
 # Enable command correction
+# If you mistype a command, zsh will suggest the correct version
+# Example: "gti status" will prompt "zsh: correct 'gti' to 'git' [nyae]?"
 setopt CORRECT
 
-# Enable globbing
+# Enable extended globbing
+# Adds powerful pattern matching operators like:
+# - ^pattern: Match anything except pattern
+# - pattern1~pattern2: Match pattern1 but not pattern2
+# - #: Match zero or more occurrences
+# - ##: Match one or more occurrences
 setopt EXTENDED_GLOB
 
-# Load local zshrc if it exists
-if [ -f "$HOME/.zshrc.local" ]; then
-  source "$HOME/.zshrc.local"
-fi
+# ============================================================================
+# ZSH PLUGINS
+# ============================================================================
+# Optional plugins that enhance zsh functionality
 
-# Load zsh plugins if they exist
-# Example: zsh-autosuggestions, zsh-syntax-highlighting
+# zsh-autosuggestions: Suggests commands as you type based on history
+# As you type, you'll see a greyed-out suggestion. Press Right arrow to accept
 if [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
   source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
+# zsh-syntax-highlighting: Highlights commands as you type
+# Valid commands are green, invalid are red, strings are yellow, etc.
+# This should be sourced last (after all other plugins)
 if [ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
   source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
 # macOS zsh plugins via Homebrew
+# Same plugins as above, but for macOS installations
 if [[ "$OSTYPE" == "darwin"* ]] && type brew &>/dev/null; then
   if [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
     source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
   fi
-  
+
   if [ -f "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
     source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
   fi
 fi
+
+# ============================================================================
+# LOCAL OVERRIDES
+# ============================================================================
+# Load machine-specific configuration
+# Use ~/.zshrc.local for:
+# - API keys and secrets
+# - Work-specific settings
+# - Machine-specific paths
+# - Experimental configuration
+# This file is not tracked in your dotfiles repo
+
+if [ -f "$HOME/.zshrc.local" ]; then
+  source "$HOME/.zshrc.local"
+fi
+
+# ============================================================================
+# USAGE TIPS - ZSH SPECIFIC FEATURES
+# ============================================================================
+# Quick reference for zsh-specific features:
+#
+# History:
+#   - Ctrl-R: Search command history (same as bash)
+#   - Up/Down: Search history based on what you've typed
+#   - !!: Repeat last command
+#   - !$: Last argument of previous command
+#
+# Directory Stack:
+#   - d: Show directory stack
+#   - 1, 2, 3...: Jump to directory from stack
+#   - cd -1, cd -2: Alternative way to use directory stack
+#   - Just type a directory name to cd into it (no 'cd' needed)
+#
+# Completion:
+#   - Tab: Start completion (opens menu if multiple matches)
+#   - Arrow keys: Navigate completion menu
+#   - Tab again: Cycle through options (when menu is showing)
+#   - Ctrl-D: List all possible completions
+#
+# Globbing Examples:
+#   - ls **/*.py: List all Python files recursively
+#   - ls *.{jpg,png}: List all jpg and png files
+#   - ls ^*.txt: List all files except .txt files
+#   - ls *.txt~*backup*: List .txt files except backups
+#
+# Git Shortcuts:
+#   - gs: git status
+#   - ga <file>: git add
+#   - gc -m "msg": git commit
+#   - gd: git diff
+#   - gl: pretty git log graph
+#
+# Python:
+#   - venv: Manage Python virtual environments
+#
+# GitHub:
+#   - gh-personal: Switch to personal account
+#   - gh-work: Switch to work account
+#   - gh-whoami: Show current account
+#
+# Plugin Installation (optional):
+#   macOS: brew install zsh-autosuggestions zsh-syntax-highlighting
+#   Linux: sudo apt install zsh-autosuggestions zsh-syntax-highlighting
+# ============================================================================

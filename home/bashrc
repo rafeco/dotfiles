@@ -1,148 +1,271 @@
-# Modern Bash configuration
-# Compatible with bash 4.0+
+# ============================================================================
+# Modern Bash Configuration
+# ============================================================================
+# Compatible with bash 4.0+ (bash 3.2+ will work with reduced functionality)
+# Works on macOS, Linux, and GitHub Codespaces
+#
+# This bashrc provides:
+# - Intelligent command history
+# - Git-aware prompt
+# - Convenient aliases and functions
+# - Platform-specific optimizations
+# ============================================================================
 
-# If not running interactively, don't do anything
+# ----------------------------------------------------------------------------
+# Early Exit for Non-Interactive Shells
+# ----------------------------------------------------------------------------
+# Don't do anything if this shell is non-interactive (e.g., running a script)
+# The [[ $- != *i* ]] test checks if the shell is interactive
+# This prevents errors when copying files or running automated scripts
 [[ $- != *i* ]] && return
 
-# History settings
+# ============================================================================
+# HISTORY CONFIGURATION
+# ============================================================================
+# A well-configured history makes it easy to recall and reuse commands
+
+# Number of commands to remember in the current session
+# Default is often 500, which fills up quickly. 10,000 gives you plenty
+# of history without using significant memory.
 HISTSIZE=10000
+
+# Number of commands to keep in the history file (~/.bash_history)
+# This persists across sessions. 20,000 lines is about 1-2 MB.
 HISTFILESIZE=20000
-HISTCONTROL=ignoreboth:erasedups  # Ignore duplicates and lines starting with space
-shopt -s histappend               # Append to history file, don't overwrite
-shopt -s cmdhist                  # Save multi-line commands as one command
+
+# Control what gets saved to history
+# - ignoreboth: Combines ignorespace and ignoredups
+#   - ignorespace: Don't save commands that start with a space (useful for secrets)
+#   - ignoredups: Don't save duplicate commands in a row
+# - erasedups: Remove older duplicates from history
+# This keeps your history clean and useful
+HISTCONTROL=ignoreboth:erasedups
+
+# Append to history file instead of overwriting it
+# Without this, each shell session would overwrite the history file,
+# and you'd lose history from other terminal windows.
+shopt -s histappend
+
+# Save multi-line commands as a single history entry
+# Makes it easier to recall and re-run complex commands
+shopt -s cmdhist
+
+# ============================================================================
+# SHELL OPTIONS
+# ============================================================================
 
 # Update LINES and COLUMNS after each command
+# Ensures the terminal size is always correct, especially after resizing
 shopt -s checkwinsize
 
-# Better glob patterns
+# Enable extended pattern matching
+# Adds more powerful glob patterns like !(pattern), ?(pattern), etc.
+# Example: ls !(*.txt) lists all files except .txt files
 shopt -s extglob
-shopt -s globstar 2>/dev/null     # Enable ** for recursive globbing (bash 4+)
+
+# Enable ** for recursive globbing (bash 4+)
+# Example: ls **/*.py lists all Python files in current dir and subdirs
+# The 2>/dev/null suppresses errors on bash 3.x which doesn't support this
+shopt -s globstar 2>/dev/null
+
+# ============================================================================
+# TAB COMPLETION
+# ============================================================================
 
 # Case-insensitive tab completion
+# Typing "dow<Tab>" will complete to "Downloads" even though case doesn't match
 bind "set completion-ignore-case on"
+
+# Show all matches on first Tab press
+# Instead of beeping and waiting for a second Tab, immediately show all options
 bind "set show-all-if-ambiguous on"
+
+# Add trailing slash to symlinked directories
+# Makes it clear when you've tab-completed to a directory vs a file
 bind "set mark-symlinked-directories on"
 
-# Colors
+# ============================================================================
+# COLORS
+# ============================================================================
+
+# Enable colors for ls and other commands (especially macOS)
 export CLICOLOR=1
+
+# Color scheme for ls on macOS/BSD
+# Ex: directories=blue, executables=red, etc.
+# Format: FB CD BF CD FB FB FB AB AB AB AB
+# (F=foreground, B=background, letters are colors)
 export LSCOLORS=ExGxBxDxCxEgEdxbxgxcxd
 
-# Prompt
+# ============================================================================
+# PROMPT
+# ============================================================================
+# The PS1 variable controls what your command prompt looks like
+
+# Function to show current git branch in prompt
+# Extracts the branch name from `git branch` output
+# Only shows when you're in a git repository
+parse_git_branch() {
+  git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
+# Check if terminal supports colors
 if [[ "$COLORTERM" == "truecolor" ]] || [[ "$TERM" == *"256color"* ]]; then
   # Colorful prompt with git branch
-  parse_git_branch() {
-    git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
-  }
+  # Format: user@host:directory (git-branch)$
+  # Colors:
+  #   - Cyan: user@host
+  #   - Magenta: current directory
+  #   - Yellow: git branch (if in a git repo)
+  # The \[ and \] brackets tell bash these are non-printing characters
+  # so it can calculate line length correctly
   export PS1='\[\033[01;36m\]\u@\h\[\033[00m\]:\[\033[01;35m\]\w\[\033[01;33m\]$(parse_git_branch)\[\033[00m\]\$ '
 else
+  # Simple prompt for terminals without color support
+  # Format: user@host:directory$
   export PS1='\u@\h:\w\$ '
 fi
 
-# Aliases
+# ============================================================================
+# FILE & DIRECTORY ALIASES
+# ============================================================================
+
+# Make ls colorful (GNU/Linux style)
+# On macOS with coreutils, this uses the GNU version
 alias ls='ls --color=auto'
+
+# List all files in long format with human-readable sizes
+# Shows: permissions, owner, size, date, name
+# -l: long format, -a: show hidden, -h: human-readable sizes
 alias ll='ls -lah'
+
+# List almost all (excludes . and ..)
 alias la='ls -A'
+
+# List in columns with file type indicators (/ for dirs, * for executables)
 alias l='ls -CF'
 
+# Enable colors in grep output
+# Highlights the matched pattern, making it easy to spot
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
 
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
+# Directory navigation shortcuts
+alias ..='cd ..'                    # Go up one directory
+alias ...='cd ../..'                # Go up two directories
+alias ....='cd ../../..'            # Go up three directories
+alias cdp='cd -'                    # Go to previous directory
 
-alias h='history'
-alias hg='history | grep'
-alias c='clear'
+# ============================================================================
+# HISTORY & UTILITY ALIASES
+# ============================================================================
 
-# Git aliases (if not using gitconfig aliases)
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gd='git diff'
-alias gl='git log --oneline --decorate --graph'
-alias gp='git push'
-alias gpl='git pull'
+alias h='history'                   # Show command history
+alias hg='history | grep'           # Search command history
+alias c='clear'                     # Clear the screen
 
-# Safety aliases
-alias rm='rm -i'
-alias cp='cp -i'
-alias mv='mv -i'
+# ============================================================================
+# GIT ALIASES
+# ============================================================================
+# Quick shortcuts for common git commands
+# Note: You might prefer using git's own alias system (in .gitconfig)
+# These shell aliases work everywhere, while git aliases only work with git
 
-# Directory navigation
-alias cdp='cd -'  # Go to previous directory
+alias gs='git status'                               # Show working tree status
+alias ga='git add'                                  # Stage files
+alias gc='git commit'                               # Create a commit
+alias gd='git diff'                                 # Show changes
+alias gl='git log --oneline --decorate --graph'     # Pretty log graph
+alias gp='git push'                                 # Push to remote
+alias gpl='git pull'                                # Pull from remote
 
-# Load shared shell functions
+# ============================================================================
+# SAFETY ALIASES
+# ============================================================================
+# Prompt before overwriting or deleting files
+# Prevents accidental data loss from typos or misunderstandings
+
+alias rm='rm -i'        # Prompt before deleting
+alias cp='cp -i'        # Prompt before overwriting
+alias mv='mv -i'        # Prompt before overwriting
+
+# ============================================================================
+# SYSTEM INFO ALIASES
+# ============================================================================
+
+# Show disk space in human-readable format (GB, MB instead of blocks)
+alias df='df -h'
+alias du='du -h'
+
+# Date/time shortcuts
+alias now='date +"%Y-%m-%d %H:%M:%S"'   # Current timestamp
+alias today='date +"%Y-%m-%d"'          # Today's date
+
+# ============================================================================
+# NETWORK ALIASES
+# ============================================================================
+
+# Show open ports and connections
+# Falls back to simpler command if netstat doesn't support -tulanp
+alias ports='netstat -tulanp 2>/dev/null || netstat -an'
+
+# Get your public IP address
+# Uses the ifconfig.me service
+alias myip='curl -s ifconfig.me'
+
+# ============================================================================
+# SHARED FUNCTIONS
+# ============================================================================
+# Load common shell functions used by both bash and zsh
+# These are defined in ~/.shell_functions and include:
+# - mkcd: Create and enter a directory
+# - extract: Smart archive extraction
+# - psgrep: Search running processes
+# - venv: Python virtual environment management
+# - gh-personal, gh-work: GitHub account switching
+
 if [ -f "$HOME/.shell_functions" ]; then
   source "$HOME/.shell_functions"
 fi
 
-# GitHub account switching (bash-specific setup)
-# Configuration stored in ~/.gh-accounts (not tracked in git)
+# ============================================================================
+# PLATFORM-SPECIFIC CONFIGURATION
+# ============================================================================
 
-gh-setup() {
-  echo "GitHub Account Switcher Setup"
-  echo "=============================="
-  echo
-
-  # Load existing config if it exists
-  if [[ -f ~/.gh-accounts ]]; then
-    source ~/.gh-accounts
-    echo "Current configuration found. Press Enter to keep current values."
-    echo
-  fi
-
-  read -e -p "Personal gh username: " -i "$PERSONAL_GH_USER" personal_user
-  read -e -p "Personal git email: " -i "$PERSONAL_GIT_EMAIL" personal_email
-  read -e -p "Work gh username: " -i "$WORK_GH_USER" work_user
-  read -e -p "Work git email: " -i "$WORK_GIT_EMAIL" work_email
-
-  cat > ~/.gh-accounts <<EOF
-PERSONAL_GH_USER=$personal_user
-PERSONAL_GIT_EMAIL=$personal_email
-WORK_GH_USER=$work_user
-WORK_GIT_EMAIL=$work_email
-EOF
-
-  echo
-  echo "✓ Configuration saved to ~/.gh-accounts"
-  echo "You can now use gh-personal and gh-work commands"
-}
-
-
-# Better df output
-alias df='df -h'
-alias du='du -h'
-
-# Date shortcuts
-alias now='date +"%Y-%m-%d %H:%M:%S"'
-alias today='date +"%Y-%m-%d"'
-
-# Network
-alias ports='netstat -tulanp 2>/dev/null || netstat -an'
-alias myip='curl -s ifconfig.me'
-
-# macOS specific
+# ----------------------------------------------------------------------------
+# macOS Specific Settings
+# ----------------------------------------------------------------------------
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  # Use GNU coreutils instead of BSD versions for cross-platform consistency
+  # Use GNU coreutils instead of BSD versions
+  # macOS ships with BSD versions of commands (ls, grep, etc.) which have
+  # different flags and behavior than GNU/Linux versions. Installing coreutils
+  # via Homebrew gives you the GNU versions for cross-platform consistency.
   if type brew &>/dev/null && [ -d "$(brew --prefix)/opt/coreutils/libexec/gnubin" ]; then
     export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
   fi
 
-  # Finder
+  # Finder: Show/hide hidden files
   alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
   alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
 
-  # Lock screen
+  # Lock screen immediately
+  # Useful when stepping away from your computer
   alias afk='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
 
-  # Update Homebrew
+  # Update all Homebrew packages
+  # brew update: Update package list
+  # brew upgrade: Upgrade installed packages
+  # brew cleanup: Remove old versions
   alias brewup='brew update && brew upgrade && brew cleanup'
 fi
 
-# Linux specific
+# ----------------------------------------------------------------------------
+# Linux Specific Settings
+# ----------------------------------------------------------------------------
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  # Package management shortcuts (Debian/Ubuntu)
+  # Uses sudo if available, otherwise runs as-is (for Docker containers)
   if command -v sudo &>/dev/null; then
     alias update='sudo apt-get update && sudo apt-get upgrade'
     alias install='sudo apt-get install'
@@ -152,34 +275,61 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   fi
 fi
 
-# Codespaces specific
+# ----------------------------------------------------------------------------
+# GitHub Codespaces Specific Settings
+# ----------------------------------------------------------------------------
 if [ -n "$CODESPACES" ]; then
+  # Use 'gh browse' to open the repo in a browser
   alias browse='gh browse'
+
+  # Use VS Code as the default editor
+  # The --wait flag makes commands wait for you to close the file
   export EDITOR='code --wait'
 fi
 
-# Claude Code - add to PATH if installed
+# ============================================================================
+# ADDITIONAL TOOLS
+# ============================================================================
+
+# Add Claude Code to PATH if installed
+# Claude Code is usually installed to ~/.claude/bin
 if [ -d "$HOME/.claude/bin" ]; then
   export PATH="$HOME/.claude/bin:$PATH"
 fi
+
+# Add ~/.local/bin to PATH if it exists and isn't already there
+# Many tools install to ~/.local/bin (pip, cargo, etc.)
 if [ -d "$HOME/.local/bin" ] && [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
   export PATH="$HOME/.local/bin:$PATH"
 fi
 
-# Anthropic API key (set in .bashrc.local or environment)
+# Anthropic API Key
+# Uncomment and set this if you're using Claude Code or the Anthropic API
+# Better: Set this in ~/.bashrc.local to keep it out of version control
 # export ANTHROPIC_API_KEY="your-key-here"
 
-# Better less
+# ============================================================================
+# PAGER CONFIGURATION
+# ============================================================================
+# Configure 'less' (the pager used by man, git, etc.)
+
+# Less options:
+# - R: Show ANSI colors correctly
+# - F: Quit if output fits on one screen (don't page short content)
+# - X: Don't clear screen when exiting
 export LESS='-R -F -X'
+
+# Lesspipe allows less to handle non-text files
+# Can preview archives, images (as ASCII art), etc.
 export LESSOPEN='|/usr/bin/lesspipe %s 2>&-'
 
-# Load local bashrc if it exists
-if [ -f "$HOME/.bashrc.local" ]; then
-  source "$HOME/.bashrc.local"
-fi
+# ============================================================================
+# PROGRAMMABLE COMPLETION
+# ============================================================================
+# Enable smart tab completion for commands like git, ssh, etc.
 
-# Enable programmable completion features
 if ! shopt -oq posix; then
+  # Try standard bash completion locations
   if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
   elif [ -f /etc/bash_completion ]; then
@@ -187,7 +337,61 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# Homebrew completion (macOS)
+# Homebrew bash completion (macOS)
+# Provides completions for Homebrew commands and installed packages
 if type brew &>/dev/null && [ -f "$(brew --prefix)/etc/bash_completion" ]; then
   . "$(brew --prefix)/etc/bash_completion"
 fi
+
+# ============================================================================
+# LOCAL OVERRIDES
+# ============================================================================
+# Load machine-specific configuration
+# Use ~/.bashrc.local for:
+# - API keys and secrets
+# - Work-specific settings
+# - Machine-specific paths
+# - Experimental configuration
+# This file is not tracked in your dotfiles repo
+
+if [ -f "$HOME/.bashrc.local" ]; then
+  source "$HOME/.bashrc.local"
+fi
+
+# ============================================================================
+# USAGE TIPS
+# ============================================================================
+# Quick reference for this configuration:
+#
+# History:
+#   - Ctrl-R: Search command history
+#   - !!: Repeat last command
+#   - !$: Last argument of previous command
+#   - !*: All arguments of previous command
+#
+# Directory Navigation:
+#   - cd -: Go to previous directory
+#   - .., ..., ....: Go up 1, 2, 3 directories
+#   - cdp: Same as cd -
+#
+# Git Shortcuts:
+#   - gs: git status
+#   - ga <file>: git add
+#   - gc -m "msg": git commit
+#   - gd: git diff
+#   - gl: pretty git log graph
+#
+# System Info:
+#   - ll: Detailed file listing
+#   - df: Disk usage
+#   - ports: Show open network ports
+#   - myip: Show public IP address
+#
+# Python:
+#   - venv: Manage Python virtual environments
+#
+# GitHub:
+#   - gh-personal: Switch to personal account
+#   - gh-work: Switch to work account
+#   - gh-whoami: Show current account
+# ============================================================================

@@ -1,95 +1,222 @@
-# User configuration is managed by gh-personal/gh-work functions
-# Run gh-setup to configure account switching
+# ============================================================================
+# Modern Git Configuration
+# ============================================================================
+# Works on macOS, Linux, and GitHub Codespaces
+#
+# This configuration provides sensible defaults for modern Git workflows
+# with detailed explanations for each setting.
+# ============================================================================
 
+# ----------------------------------------------------------------------------
+# User Configuration
+# ----------------------------------------------------------------------------
+# User name and email are managed by gh-personal/gh-work shell functions
+# These functions write user config to ~/.gitconfig.local (which is included
+# at the bottom of this file) to prevent tracked files from changing when
+# you switch between personal and work accounts.
+#
+# Setup: Run 'gh-setup' to configure account switching, then use:
+#   - gh-personal: Switch to personal GitHub account
+#   - gh-work: Switch to work GitHub account
+#   - gh-whoami: Show current account
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# Repository Initialization
+# ----------------------------------------------------------------------------
 [init]
+  # Use 'main' instead of 'master' for new repositories
+  # This is the new GitHub default and is becoming standard across the industry
   defaultBranch = main
 
+# ----------------------------------------------------------------------------
+# Pull Behavior
+# ----------------------------------------------------------------------------
 [pull]
+  # Rebase instead of merge when pulling
+  # This keeps your commit history linear and easier to read. Instead of
+  # creating merge commits when you pull, it replays your local commits on
+  # top of the remote commits. Combine with autoStash (see [rebase] section).
   rebase = true
 
+# ----------------------------------------------------------------------------
+# Push Behavior
+# ----------------------------------------------------------------------------
 [push]
+  # Only push the current branch (safest option)
+  # Prevents accidentally pushing all branches when you only meant to push one
   default = simple
+
+  # Automatically set up remote tracking on first push
+  # When you push a new branch, Git automatically creates the remote branch
+  # and sets up tracking. Without this, you'd need to use:
+  #   git push --set-upstream origin branch-name
+  # With this, you can just use: git push
   autoSetupRemote = true
 
+# ----------------------------------------------------------------------------
+# Fetch Behavior
+# ----------------------------------------------------------------------------
 [fetch]
+  # Remove remote-tracking branches that no longer exist on the remote
+  # When someone deletes a branch on GitHub, this automatically removes your
+  # local reference to it. Keeps 'git branch -r' output clean.
   prune = true
 
+# ----------------------------------------------------------------------------
+# Rebase Behavior
+# ----------------------------------------------------------------------------
 [rebase]
+  # Automatically stash changes before rebasing
+  # If you have uncommitted changes and try to rebase/pull, Git normally
+  # refuses. This automatically stashes changes, does the rebase, then
+  # reapplies your changes. Much more convenient!
   autoStash = true
 
+# ----------------------------------------------------------------------------
+# Color Configuration
+# ----------------------------------------------------------------------------
 [color]
-  diff = auto
-  status = auto
-  branch = auto
-  ui = true
+  # Enable colored output for various commands
+  # Makes output much easier to read by highlighting additions, deletions, etc.
+  diff = auto      # Green for additions, red for deletions
+  status = auto    # Color file states (modified, untracked, etc.)
+  branch = auto    # Color current branch differently
+  ui = true        # Enable colors globally
 
+# ----------------------------------------------------------------------------
+# Core Settings
+# ----------------------------------------------------------------------------
 [core]
+  # Use Vim as the default editor for commit messages, rebases, etc.
+  # Change this to 'nano', 'emacs', 'code --wait', etc. if you prefer
   editor = vim
+
+  # Handle line endings: convert CRLF to LF on commit
+  # - input: Convert CRLF to LF when committing, leave LF alone
+  # This prevents Windows-style line endings from getting into the repo
+  # while still letting you check out files with CRLF if needed
   autocrlf = input
-  # Codespaces compatibility
+
+  # Pager configuration for better output in terminals
+  # - F: Quit if output fits on one screen (no paging needed)
+  # - R: Show ANSI color codes properly
+  # - X: Don't clear the screen when exiting
+  # Especially useful in GitHub Codespaces and remote environments
   pager = less -FRX
 
+# ----------------------------------------------------------------------------
+# Diff Settings
+# ----------------------------------------------------------------------------
 [diff]
+  # Highlight moved code blocks
+  # When you move code from one part of a file to another, Git shows it
+  # as "moved" instead of deleted+added. Makes refactoring much clearer.
+  # - zebra: Alternates colors for moved blocks
   colorMoved = zebra
+
+  # Use histogram algorithm for better diffs
+  # The histogram algorithm produces more intuitive diffs than the default,
+  # especially for code. It does a better job matching up brackets and
+  # understanding code structure.
   algorithm = histogram
 
+# ----------------------------------------------------------------------------
+# Merge Settings
+# ----------------------------------------------------------------------------
 [merge]
+  # Use zdiff3 conflict style for more context
+  # Shows three sections in merge conflicts:
+  #   1. Your changes
+  #   2. The common ancestor (what the code looked like before both changes)
+  #   3. Their changes
+  # The ancestor section helps you understand what both sides were trying
+  # to accomplish, making conflicts much easier to resolve.
   conflictstyle = zdiff3
 
+# ----------------------------------------------------------------------------
+# Command Aliases
+# ----------------------------------------------------------------------------
+# Shortcuts for common Git commands. Use them like: git s, git lg, etc.
 [alias]
-  # Short status
-  s = status -sb
-  st = status -s -u
-  
-  # Add
-  a = add
-  ap = add --patch
-  
-  # Commit
-  ci = commit
-  amend = commit --amend
-  fixup = commit --fixup
-  
-  # Checkout and branch
-  co = checkout
-  cob = checkout -b
-  sw = switch
-  swc = switch -c
-  
-  # Diff
-  d = diff --color-words
-  ds = diff --staged
-  dc = diff --cached
-  
-  # Log
-  l = log --oneline --decorate
-  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-  gr = log --graph
-  go = log --graph --pretty=oneline --abbrev-commit
-  last = log -1 HEAD
-  
-  # Pull/Push
-  pr = pull --rebase
-  up = pull --rebase --autostash
-  
-  # Undo
-  unstage = reset HEAD --
-  undo = reset --soft HEAD^
-  
-  # Worktree
-  wt = worktree
-  
-  # Compare branches
-  wp = diff origin/master master
-  branches = branch -a
-  tags = tag -l
-  remotes = remote -v
+  # Status aliases
+  s = status -sb              # Short status with branch info (compact view)
+  st = status -s -u           # Short status including untracked files
+
+  # Add aliases
+  a = add                     # Stage files
+  ap = add --patch            # Interactively choose hunks to stage
+
+  # Commit aliases
+  ci = commit                 # Create a commit
+  amend = commit --amend      # Amend the last commit
+  fixup = commit --fixup      # Create a fixup commit (use with rebase -i --autosquash)
+
+  # Branch navigation (two different styles)
+  # checkout style (older):
+  co = checkout               # Switch branches or restore files
+  cob = checkout -b           # Create and switch to a new branch
+  # switch style (newer, more explicit):
+  sw = switch                 # Switch branches only
+  swc = switch -c             # Create and switch to a new branch
+
+  # Diff aliases
+  d = diff --color-words      # Show word-by-word diff (better for prose)
+  ds = diff --staged          # Show staged changes
+  dc = diff --cached          # Same as --staged (older syntax)
+
+  # Log aliases
+  l = log --oneline --decorate                    # Compact one-line log
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit  # Beautiful graph log with colors
+  gr = log --graph                                # Simple graph log
+  go = log --graph --pretty=oneline --abbrev-commit  # Compact graph log
+  last = log -1 HEAD                              # Show the last commit
+
+  # Pull/Push aliases
+  pr = pull --rebase          # Pull with rebase
+  up = pull --rebase --autostash  # Pull, rebase, and auto-stash changes
+
+  # Undo aliases (use with caution!)
+  unstage = reset HEAD --     # Unstage files (opposite of git add)
+  undo = reset --soft HEAD^   # Undo last commit but keep changes staged
+
+  # Worktree aliases
+  wt = worktree               # Manage multiple working trees
+
+  # Information aliases
+  wp = diff origin/master master    # Compare local master with remote
+  branches = branch -a              # List all branches (local and remote)
+  tags = tag -l                     # List all tags
+  remotes = remote -v               # List all remotes with URLs
+
+# ----------------------------------------------------------------------------
+# Credential Management
+# ----------------------------------------------------------------------------
+# Use GitHub CLI for authentication
+# This integrates with 'gh' to handle GitHub credentials securely
+# The empty helper = line clears any system defaults before setting gh
 [credential "https://github.com"]
   helper =
   helper = !/opt/homebrew/bin/gh auth git-credential
 
+# ----------------------------------------------------------------------------
+# Platform-Specific Configuration
+# ----------------------------------------------------------------------------
+# Include platform-specific settings (not tracked in dotfiles)
+# This file is created by the dotfiles installer and contains settings
+# specific to your OS (macOS, Linux, Codespaces) like credential helpers
 [include]
   path = ~/.gitconfig.platform
 
+# ----------------------------------------------------------------------------
+# Local Overrides
+# ----------------------------------------------------------------------------
+# Include local configuration (not tracked in dotfiles)
+# Use this file for:
+#   - User name and email (managed by gh-personal/gh-work functions)
+#   - Machine-specific settings
+#   - Work-specific configuration
+#   - Experimental settings you don't want to commit
+# This file is safe to edit manually and won't be overwritten
 [include]
   path = ~/.gitconfig.local
