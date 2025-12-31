@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+# ============================================================================
+# GitHub Account Switcher Setup Wizard
+# ============================================================================
+# Interactive configuration tool for managing multiple GitHub accounts.
+# Creates/edits ~/.gh-accounts config file in git config (INI) format.
+#
+# This script is bash-specific to avoid shell compatibility issues.
+# ============================================================================
+
+set -e  # Exit on error
+
+echo "GitHub Account Switcher Setup"
+echo "============================="
+echo ""
+echo "This wizard will help you configure multiple GitHub accounts."
+echo "You can add as many accounts as you need."
+echo ""
+
+config_file="$HOME/.gh-accounts"
+temp_file=$(mktemp)
+
+# Clean up temp file on exit
+trap 'rm -f "$temp_file"' EXIT
+
+# If config exists, copy it to temp file
+# Use command to bypass any cp alias (like cp -i)
+if [[ -f "$config_file" ]]; then
+  command cp "$config_file" "$temp_file"
+  echo "✓ Existing configuration loaded"
+  echo ""
+fi
+
+# Function to add or update an account
+add_account() {
+  local account_name="$1"
+
+  echo "--- Account: $account_name ---"
+
+  # Try to get existing values
+  local existing_user=$(git config -f "$temp_file" "account.$account_name.user" 2>/dev/null || echo "")
+  local existing_name=$(git config -f "$temp_file" "account.$account_name.name" 2>/dev/null || echo "")
+  local existing_email=$(git config -f "$temp_file" "account.$account_name.email" 2>/dev/null || echo "")
+
+  # Prompt for values with defaults using bash read -e -p -i
+  local gh_user git_name git_email
+
+  if [[ -n "$existing_user" ]]; then
+    read -e -p "GitHub username [$existing_user]: " -i "$existing_user" gh_user
+    gh_user="${gh_user:-$existing_user}"
+  else
+    read -p "GitHub username: " gh_user
+  fi
+
+  if [[ -n "$existing_name" ]]; then
+    read -e -p "Git committer name [$existing_name]: " -i "$existing_name" git_name
+    git_name="${git_name:-$existing_name}"
+  else
+    read -p "Git committer name: " git_name
+  fi
+
+  if [[ -n "$existing_email" ]]; then
+    read -e -p "Git committer email [$existing_email]: " -i "$existing_email" git_email
+    git_email="${git_email:-$existing_email}"
+  else
+    read -p "Git committer email: " git_email
+  fi
+
+  # Validate inputs
+  if [[ -z "$gh_user" ]] || [[ -z "$git_name" ]] || [[ -z "$git_email" ]]; then
+    echo "⚠ All fields are required. Account not saved."
+    return 1
+  fi
+
+  # Save to temp file
+  git config -f "$temp_file" "account.$account_name.user" "$gh_user"
+  git config -f "$temp_file" "account.$account_name.name" "$git_name"
+  git config -f "$temp_file" "account.$account_name.email" "$git_email"
+
+  echo "✓ Account '$account_name' configured"
+  echo ""
+}
+
+# Main setup loop
+while true; do
+  echo "Options:"
+  echo "  1) Add/edit an account"
+  echo "  2) List configured accounts"
+  echo "  3) Remove an account"
+  echo "  4) Save and exit"
+  echo "  5) Cancel (discard changes)"
+  echo ""
+  read -p "Choose an option [1-5]: " choice
+  echo ""
+
+  case "$choice" in
+    1)
+      read -p "Account name (e.g., 'rafeco', 'etsy'): " account_name
+      # Validate account name (alphanumeric, dash, underscore only)
+      if [[ ! "$account_name" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        echo "⚠ Account name must be alphanumeric (can include - and _)"
+        echo ""
+        continue
+      fi
+      add_account "$account_name"
+      ;;
+    2)
+      echo "Configured accounts:"
+      if git config -f "$temp_file" --get-regexp '^account\.' >/dev/null 2>&1; then
+        git config -f "$temp_file" --get-regexp '^account\.' | \
+          sed 's/^account\.\([^.]*\)\..*/\1/' | sort -u | \
+          while read -r name; do
+            user=$(git config -f "$temp_file" "account.$name.user")
+            email=$(git config -f "$temp_file" "account.$name.email")
+            echo "  - $name ($user <$email>)"
+          done
+      else
+        echo "  (no accounts configured yet)"
+      fi
+      echo ""
+      ;;
+    3)
+      read -p "Account name to remove: " account_name
+      if git config -f "$temp_file" --remove-section "account.$account_name" 2>/dev/null; then
+        echo "✓ Removed account '$account_name'"
+      else
+        echo "⚠ Account '$account_name' not found"
+      fi
+      echo ""
+      ;;
+    4)
+      command mv "$temp_file" "$config_file"
+      echo "✓ Configuration saved to $config_file"
+      echo ""
+      echo "Reload your shell to activate new accounts:"
+      echo "  source ~/.bashrc    (or ~/.zshrc)"
+      echo ""
+      echo "Available commands:"
+      git config -f "$config_file" --get-regexp '^account\.' | \
+        sed 's/^account\.\([^.]*\)\..*/\1/' | sort -u | \
+        while read -r name; do
+          echo "  gh-$name"
+        done
+      exit 0
+      ;;
+    5)
+      echo "Setup cancelled. No changes saved."
+      exit 0
+      ;;
+    *)
+      echo "⚠ Invalid option"
+      echo ""
+      ;;
+  esac
+done

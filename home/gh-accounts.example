@@ -1,11 +1,37 @@
+# ============================================================================
 # GitHub Account Switcher Configuration
-# Copy this file to ~/.gh-accounts and fill in your details
-# Or run 'gh-setup' to interactively create this file
+# ============================================================================
+# This file defines multiple GitHub accounts for easy switching.
+# Copy this file to ~/.gh-accounts and customize for your accounts.
+#
+# After setup, you'll have commands like:
+#   gh-rafeco    - Switch to rafeco account
+#   gh-etsy      - Switch to etsy account
+#   gh-whoami    - Show current account
+#
+# Uses git config format (INI-style) for easy parsing and editing.
+# ============================================================================
 
-PERSONAL_GH_USER=your-github-username
-PERSONAL_GIT_NAME="Your Name"
-PERSONAL_GIT_EMAIL=your.personal@email.com
+[account "rafeco"]
+  user = your-github-username
+  name = Your Name
+  email = your.personal@email.com
 
-WORK_GH_USER=your-work-github-username
-WORK_GIT_NAME="Your Name"
-WORK_GIT_EMAIL=your.work@email.com
+[account "etsy"]
+  user = your-work-github-username
+  name = Your Name
+  email = your.work@email.com
+
+# ============================================================================
+# Adding More Accounts
+# ============================================================================
+# To add another account, just add another [account "name"] section:
+#
+# [account "consulting"]
+#   user = consultant-handle
+#   name = Your Name
+#   email = consulting@example.com
+#
+# Then run: source ~/.bashrc  (or source ~/.zshrc)
+# And you'll have: gh-consulting command available
+# ============================================================================

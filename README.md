@@ -53,11 +53,13 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
   - Properly manages PATH to prioritize installed packages
 
 ### GitHub Account Switching
-- Easy switching between personal and work GitHub accounts
-- `gh-setup` - Interactive configuration wizard
-- `gh-work` / `gh-personal` - Switch between accounts
+- Config-driven account management supporting unlimited accounts
+- `gh-setup` - Interactive wizard to add/edit/remove accounts
+- `gh-{name}` - Dynamic commands created for each configured account
+  - Example: `gh-rafeco`, `gh-etsy`, `gh-consulting`
 - `gh-whoami` - Display current account status
 - Automatically updates gh CLI and git user name/email
+- Uses git config (INI) format for easy editing
 - Configuration stored in `~/.gh-accounts` (not tracked in git)
 - Template provided in `home/gh-accounts.example`
 
