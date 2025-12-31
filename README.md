@@ -41,8 +41,7 @@ Both Bash and Zsh will automatically use [Starship](https://starship.rs) if it's
 brew install starship
 
 # Optional: Install a Nerd Font for icons
-brew tap homebrew/cask-fonts
-brew install --cask font-fira-code-nerd-font
+brew install font-fira-code-nerd-font
 
 # Apply a preset or create custom config
 starship preset nerd-font-symbols -o ~/.config/starship.toml
