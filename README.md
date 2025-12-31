@@ -32,6 +32,22 @@ The installer will symlink configs from `home/*` to `~/.*`, backup existing file
 
 This interactive script installs recommended development packages via Homebrew. See [Homebrew Package Management](#homebrew-package-management) for details.
 
+**Optional - Starship Prompt:**
+
+Both Bash and Zsh will automatically use [Starship](https://starship.rs) if it's installed, falling back to custom git-aware prompts otherwise.
+
+```bash
+# Install Starship (optional)
+brew install starship
+
+# Optional: Install a Nerd Font for icons
+brew tap homebrew/cask-fonts
+brew install --cask font-fira-code-nerd-font
+
+# Apply a preset or create custom config
+starship preset nerd-font-symbols -o ~/.config/starship.toml
+```
+
 ### GitHub Codespaces
 
 Set this repository as your [dotfiles repository](https://docs.github.com/en/codespaces/customizing-your-codespace/personalizing-github-codespaces-for-your-account#dotfiles) in GitHub Settings → Codespaces for automatic installation.
@@ -103,7 +119,6 @@ Run `~/.dotfiles/home/brew-setup` after installation to set up recommended devel
 - `zsh-syntax-highlighting` - Fish-like syntax highlighting
 - `zsh-autosuggestions` - Fish-like command suggestions
 - `zsh-completions` - Additional completion definitions
-- `starship` - Fast, customizable shell prompt
 
 **Development & Productivity**
 - `git` - Latest Git version

@@ -38,7 +38,6 @@ RECOMMENDED_PACKAGES=(
   zsh-syntax-highlighting
   zsh-autosuggestions
   zsh-completions
-  starship
 
   # Development & Productivity
   git
