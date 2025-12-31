@@ -2,6 +2,13 @@
 
 Modern dotfiles for Git, Bash, Zsh, tmux, and Vim. Works on macOS, Linux, and GitHub Codespaces.
 
+## Key Features
+
+- **Easy Python virtual environment management** - One `venv` command to activate, deactivate, or create `.venv` directories
+- **Seamless GitHub account switching** - Manage unlimited GitHub accounts with `gh-setup`, switch between them instantly with `gh-{name}` commands
+- **Works with both Bash and Zsh** - Identical feature set and shared functions across both shells, choose your preference
+- **Highly usable Vim configuration** - Sensible defaults, relative line numbers, persistent undo, system clipboard integration, and comprehensive inline documentation
+
 ## Quick Start
 
 **One-line install:**
@@ -21,13 +28,6 @@ The installer will symlink configs from `home/*` to `~/.*`, backup existing file
 ### GitHub Codespaces
 
 Set this repository as your [dotfiles repository](https://docs.github.com/en/codespaces/customizing-your-codespace/personalizing-github-codespaces-for-your-account#dotfiles) in GitHub Settings → Codespaces for automatic installation.
-
-## Key Features
-
-- **Easy Python virtual environment management** - One `venv` command to activate, deactivate, or create `.venv` directories
-- **Seamless GitHub account switching** - Manage unlimited GitHub accounts with `gh-setup`, switch between them instantly with `gh-{name}` commands
-- **Works with both Bash and Zsh** - Identical feature set and shared functions across both shells, choose your preference
-- **Highly usable Vim configuration** - Sensible defaults, relative line numbers, persistent undo, system clipboard integration, and comprehensive inline documentation
 
 ## What's Included
 
