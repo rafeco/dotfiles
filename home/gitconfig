@@ -1,6 +1,5 @@
-[user]
-  name = Rafe Colburn
-	email = rcolburn@etsy.com
+# User configuration is managed by gh-personal/gh-work functions
+# Run gh-setup to configure account switching
 
 [init]
   defaultBranch = main

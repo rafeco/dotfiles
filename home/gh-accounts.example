@@ -1,0 +1,11 @@
+# GitHub Account Switcher Configuration
+# Copy this file to ~/.gh-accounts and fill in your details
+# Or run 'gh-setup' to interactively create this file
+
+PERSONAL_GH_USER=your-github-username
+PERSONAL_GIT_NAME="Your Name"
+PERSONAL_GIT_EMAIL=your.personal@email.com
+
+WORK_GH_USER=your-work-github-username
+WORK_GIT_NAME="Your Name"
+WORK_GIT_EMAIL=your.work@email.com

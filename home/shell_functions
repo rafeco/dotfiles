@@ -97,6 +97,55 @@ venv() {
 }
 
 # GitHub account switching helpers
+gh-setup() {
+  echo "Setting up GitHub account switcher configuration..."
+  echo ""
+
+  # Check if file exists
+  if [[ -f ~/.gh-accounts ]]; then
+    echo "⚠ ~/.gh-accounts already exists. Overwrite? (y/N)"
+    read -r response
+    if [[ ! "$response" =~ ^[Yy]$ ]]; then
+      echo "Setup cancelled."
+      return 0
+    fi
+  fi
+
+  echo "Enter personal GitHub username:"
+  read -r personal_gh_user
+
+  echo "Enter personal Git name (e.g., 'Rafe Colburn'):"
+  read -r personal_git_name
+
+  echo "Enter personal Git email:"
+  read -r personal_git_email
+
+  echo ""
+  echo "Enter work GitHub username:"
+  read -r work_gh_user
+
+  echo "Enter work Git name:"
+  read -r work_git_name
+
+  echo "Enter work Git email:"
+  read -r work_git_email
+
+  # Write configuration file
+  cat > ~/.gh-accounts <<EOF
+PERSONAL_GH_USER=$personal_gh_user
+PERSONAL_GIT_NAME="$personal_git_name"
+PERSONAL_GIT_EMAIL=$personal_git_email
+WORK_GH_USER=$work_gh_user
+WORK_GIT_NAME="$work_git_name"
+WORK_GIT_EMAIL=$work_git_email
+EOF
+
+  echo ""
+  echo "✓ Configuration saved to ~/.gh-accounts"
+  echo ""
+  echo "Now run 'gh-personal' or 'gh-work' to switch accounts."
+}
+
 gh-personal() {
   if [[ ! -f ~/.gh-accounts ]]; then
     echo "⚠ Configuration not found. Run 'gh-setup' first."
@@ -105,8 +154,15 @@ gh-personal() {
 
   source ~/.gh-accounts
   gh auth switch --user "$PERSONAL_GH_USER"
-  git config --global user.email "$PERSONAL_GIT_EMAIL"
-  echo "✓ Switched to personal account ($PERSONAL_GH_USER / $PERSONAL_GIT_EMAIL)"
+
+  # Write user config to ~/.gitconfig.local to avoid polluting tracked dotfiles
+  cat > ~/.gitconfig.local <<EOF
+[user]
+  name = $PERSONAL_GIT_NAME
+  email = $PERSONAL_GIT_EMAIL
+EOF
+
+  echo "✓ Switched to personal account ($PERSONAL_GH_USER / $PERSONAL_GIT_NAME <$PERSONAL_GIT_EMAIL>)"
 }
 
 gh-work() {
@@ -117,8 +173,15 @@ gh-work() {
 
   source ~/.gh-accounts
   gh auth switch --user "$WORK_GH_USER"
-  git config --global user.email "$WORK_GIT_EMAIL"
-  echo "✓ Switched to work account ($WORK_GH_USER / $WORK_GIT_EMAIL)"
+
+  # Write user config to ~/.gitconfig.local to avoid polluting tracked dotfiles
+  cat > ~/.gitconfig.local <<EOF
+[user]
+  name = $WORK_GIT_NAME
+  email = $WORK_GIT_EMAIL
+EOF
+
+  echo "✓ Switched to work account ($WORK_GH_USER / $WORK_GIT_NAME <$WORK_GIT_EMAIL>)"
 }
 
 gh-whoami() {

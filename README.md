@@ -57,8 +57,9 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
 - `gh-setup` - Interactive configuration wizard
 - `gh-work` / `gh-personal` - Switch between accounts
 - `gh-whoami` - Display current account status
-- Automatically updates both gh CLI and git user email
+- Automatically updates gh CLI and git user name/email
 - Configuration stored in `~/.gh-accounts` (not tracked in git)
+- Template provided in `home/gh-accounts.example`
 
 ### tmux (`home/tmux.conf`)
 - Prefix: `Ctrl-\`
