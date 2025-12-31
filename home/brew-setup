@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# ============================================================================
+# Homebrew Package Manager
+# ============================================================================
+# Interactive tool for installing recommended Homebrew packages.
+# Checks current installation status and offers to install missing packages.
+#
+# This script is bash-specific to avoid shell compatibility issues.
+# ============================================================================
+
+set -e  # Exit on error
+
+echo "Homebrew Package Manager"
+echo "========================"
+echo ""
+
+# Check if we're on macOS
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  echo "⚠ This script is only for macOS"
+  echo ""
+  echo "Homebrew package management is designed for macOS."
+  echo "On Linux, use your distribution's package manager instead."
+  exit 1
+fi
+
+# Recommended packages organized by category
+RECOMMENDED_PACKAGES=(
+  # GNU Core Utilities (macOS compatibility layer)
+  bash
+  coreutils
+  grep
+  gnu-sed
+  gawk
+  findutils
+  diffutils
+
+  # Zsh Enhancements
+  zsh-syntax-highlighting
+  zsh-autosuggestions
+  zsh-completions
+  starship
+
+  # Development & Productivity
+  git
+  gh
+  jq
+  fzf
+  ripgrep
+  fd
+  bat
+  eza
+  tldr
+  htop
+  tree
+  wget
+  watch
+
+  # Linting & Formatting
+  shellcheck
+  shfmt
+)
+
+# Check if Homebrew is installed
+if ! command -v brew &>/dev/null; then
+  echo "⚠ Homebrew not installed"
+  echo ""
+  echo "Homebrew is required to use this script."
+  echo "Install from: https://brew.sh"
+  echo ""
+  echo "Installation command:"
+  echo '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+  exit 1
+fi
+
+echo "✓ Homebrew found: $(brew --version | head -n1)"
+echo ""
+
+# Function to check if a package is installed
+is_installed() {
+  local package="$1"
+  brew list --formula "$package" &>/dev/null 2>&1
+  return $?
+}
+
+# Scan packages and categorize them
+echo "Scanning installed packages..."
+installed=()
+missing=()
+
+for pkg in "${RECOMMENDED_PACKAGES[@]}"; do
+  if is_installed "$pkg"; then
+    installed+=("$pkg")
+  else
+    missing+=("$pkg")
+  fi
+done
+
+echo ""
+echo "Installation Status:"
+echo "===================="
+
+# Display installed packages
+if [[ ${#installed[@]} -gt 0 ]]; then
+  echo "✓ Already installed (${#installed[@]}):"
+  # Display in a more readable format (multiple columns if many packages)
+  if [[ ${#installed[@]} -gt 10 ]]; then
+    # Print in columns for better readability
+    printf "  %s\n" "${installed[@]}" | column -c 80 || printf "  %s\n" "${installed[@]}"
+  else
+    echo "  ${installed[*]}"
+  fi
+else
+  echo "✓ Already installed: (none)"
+fi
+
+echo ""
+
+# Display missing packages
+if [[ ${#missing[@]} -gt 0 ]]; then
+  echo "⚠ Missing (${#missing[@]}):"
+  # Display in a more readable format (multiple columns if many packages)
+  if [[ ${#missing[@]} -gt 10 ]]; then
+    printf "  %s\n" "${missing[@]}" | column -c 80 || printf "  %s\n" "${missing[@]}"
+  else
+    echo "  ${missing[*]}"
+  fi
+else
+  echo "✓ All recommended packages are installed!"
+  echo ""
+  echo "You're all set. No action needed."
+  exit 0
+fi
+
+echo ""
+echo "These packages provide:"
+echo "  • GNU core utilities for better shell compatibility"
+echo "  • Modern CLI tools (ripgrep, fd, bat, eza, fzf)"
+echo "  • Zsh enhancements (syntax highlighting, autosuggestions)"
+echo "  • Development tools (shellcheck, shfmt)"
+echo ""
+
+# Ask for confirmation
+read -p "Install all ${#missing[@]} missing packages? [y/N]: " confirm
+confirm="${confirm:-N}"
+
+if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+  echo ""
+  echo "Cancelled. No packages installed."
+  echo ""
+  echo "To install packages manually:"
+  echo "  brew install ${missing[*]}"
+  exit 0
+fi
+
+# Install missing packages
+echo ""
+echo "Installing packages..."
+echo "====================="
+
+# Temporarily disable set -e to handle failures gracefully
+set +e
+
+installed_count=0
+failed=()
+
+for pkg in "${missing[@]}"; do
+  echo -n "Installing $pkg... "
+  if brew install "$pkg" &>/dev/null; then
+    echo "✓"
+    ((installed_count++))
+  else
+    echo "⚠ Failed"
+    failed+=("$pkg")
+  fi
+done
+
+# Re-enable set -e
+set -e
+
+# Display summary
+echo ""
+echo "Installation Complete"
+echo "====================="
+echo "✓ Successfully installed: $installed_count package(s)"
+
+if [[ ${#failed[@]} -gt 0 ]]; then
+  echo "⚠ Failed to install: ${#failed[@]} package(s)"
+  echo "  Packages: ${failed[*]}"
+  echo ""
+  echo "You can try installing these manually:"
+  for pkg in "${failed[@]}"; do
+    echo "  brew install $pkg"
+  done
+  echo ""
+  echo "Check 'brew doctor' for potential issues."
+fi
+
+echo ""
+echo "Done! Your development environment is ready."

@@ -25,6 +25,13 @@ cd ~/.dotfiles
 
 The installer will symlink configs from `home/*` to `~/.*`, backup existing files, and detect your environment (macOS/Linux/Codespaces).
 
+**After installation (macOS only):**
+```bash
+~/.dotfiles/home/brew-setup
+```
+
+This interactive script installs recommended development packages via Homebrew. See [Homebrew Package Management](#homebrew-package-management) for details.
+
 ### GitHub Codespaces
 
 Set this repository as your [dotfiles repository](https://docs.github.com/en/codespaces/customizing-your-codespace/personalizing-github-codespaces-for-your-account#dotfiles) in GitHub Settings → Codespaces for automatic installation.
@@ -71,6 +78,50 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
 - Uses git config (INI) format for easy editing
 - Configuration stored in `~/.gh-accounts` (not tracked in git)
 - Template provided in `home/gh-accounts.example`
+
+### Homebrew Package Management
+
+Run `~/.dotfiles/home/brew-setup` after installation to set up recommended development packages. The script:
+- Scans your system to show which packages are already installed
+- Lists missing packages with clear categorization
+- Confirms before installing anything
+- Handles installation failures gracefully
+
+**Packages installed by category:**
+
+**GNU Core Utilities** (macOS compatibility layer)
+- `bash` - Modern Bash shell (macOS ships with ancient version)
+- `coreutils` - GNU versions of basic utilities (ls, cat, etc.)
+- `grep` - GNU grep with better regex support
+- `gnu-sed` - GNU sed for consistent behavior across platforms
+- `gawk` - GNU awk interpreter
+- `findutils` - GNU find, xargs, locate
+- `diffutils` - GNU diff, cmp, sdiff
+
+**Zsh Enhancements**
+- `zsh-syntax-highlighting` - Fish-like syntax highlighting
+- `zsh-autosuggestions` - Fish-like command suggestions
+- `zsh-completions` - Additional completion definitions
+- `starship` - Fast, customizable shell prompt
+
+**Development & Productivity**
+- `git` - Latest Git version
+- `gh` - GitHub CLI tool
+- `jq` - Command-line JSON processor
+- `fzf` - Fuzzy finder for command history, files, and more
+- `ripgrep` - Faster alternative to grep
+- `fd` - Faster alternative to find
+- `bat` - cat with syntax highlighting
+- `eza` - Modern replacement for ls
+- `tldr` - Simplified man pages
+- `htop` - Interactive process viewer
+- `tree` - Directory tree visualization
+- `wget` - Network downloader
+- `watch` - Execute commands periodically
+
+**Linting & Formatting**
+- `shellcheck` - Shell script static analysis
+- `shfmt` - Shell script formatter
 
 ### tmux (`home/tmux.conf`)
 - Prefix: `Ctrl-\`

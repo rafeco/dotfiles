@@ -168,4 +168,9 @@ if [[ "$OS" == "Darwin" ]]; then
 else
   echo "  source ~/.bashrc"
 fi
-echo ""
+if [[ "$OS" == "Darwin" ]]; then
+  echo ""
+  echo "Optional setup:"
+  echo "  Run ~/.dotfiles/home/brew-setup to install recommended Homebrew packages"
+  echo ""
+fi
