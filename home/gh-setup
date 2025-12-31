@@ -42,25 +42,25 @@ add_account() {
   local existing_name=$(git config -f "$temp_file" "account.$account_name.name" 2>/dev/null || echo "")
   local existing_email=$(git config -f "$temp_file" "account.$account_name.email" 2>/dev/null || echo "")
 
-  # Prompt for values with defaults using bash read -e -p -i
+  # Prompt for values with defaults (compatible with bash 3.2+)
   local gh_user git_name git_email
 
   if [[ -n "$existing_user" ]]; then
-    read -e -p "GitHub username [$existing_user]: " -i "$existing_user" gh_user
+    read -p "GitHub username [$existing_user]: " gh_user
     gh_user="${gh_user:-$existing_user}"
   else
     read -p "GitHub username: " gh_user
   fi
 
   if [[ -n "$existing_name" ]]; then
-    read -e -p "Git committer name [$existing_name]: " -i "$existing_name" git_name
+    read -p "Git committer name [$existing_name]: " git_name
     git_name="${git_name:-$existing_name}"
   else
     read -p "Git committer name: " git_name
   fi
 
   if [[ -n "$existing_email" ]]; then
-    read -e -p "Git committer email [$existing_email]: " -i "$existing_email" git_email
+    read -p "Git committer email [$existing_email]: " git_email
     git_email="${git_email:-$existing_email}"
   else
     read -p "Git committer email: " git_email
