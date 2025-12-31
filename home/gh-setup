@@ -120,6 +120,19 @@ while true; do
       echo ""
       ;;
     3)
+      echo "Configured accounts:"
+      if git config -f "$temp_file" --get-regexp '^account\.' >/dev/null 2>&1; then
+        git config -f "$temp_file" --get-regexp '^account\.' | \
+          sed 's/^account\.\([^.]*\)\..*/\1/' | sort -u | \
+          while read -r name; do
+            user=$(git config -f "$temp_file" "account.$name.user")
+            email=$(git config -f "$temp_file" "account.$name.email")
+            echo "  - $name ($user <$email>)"
+          done
+      else
+        echo "  (no accounts configured yet)"
+      fi
+      echo ""
       read -p "Account name to remove: " account_name
       if git config -f "$temp_file" --remove-section "account.$account_name" 2>/dev/null; then
         echo "✓ Removed account '$account_name'"
@@ -132,15 +145,40 @@ while true; do
       command mv "$temp_file" "$config_file"
       echo "✓ Configuration saved to $config_file"
       echo ""
-      echo "Reload your shell to activate new accounts:"
-      echo "  source ~/.bashrc    (or ~/.zshrc)"
-      echo ""
       echo "Available commands:"
       git config -f "$config_file" --get-regexp '^account\.' | \
         sed 's/^account\.\([^.]*\)\..*/\1/' | sort -u | \
         while read -r name; do
           echo "  gh-$name"
         done
+      echo ""
+
+      # Offer to reload shell configuration
+      read -p "Reload shell configuration now? [Y/n]: " reload_choice
+      reload_choice="${reload_choice:-Y}"
+
+      if [[ "$reload_choice" =~ ^[Yy] ]]; then
+        # Detect shell and source appropriate rc file
+        shell_name=$(basename "$SHELL")
+        case "$shell_name" in
+          zsh)
+            echo "Reloading zsh configuration..."
+            exec zsh
+            ;;
+          bash)
+            echo "Reloading bash configuration..."
+            exec bash
+            ;;
+          *)
+            echo "Unknown shell: $shell_name"
+            echo "Please manually reload with: source ~/.<shell>rc"
+            ;;
+        esac
+      else
+        echo "Reload your shell to activate changes:"
+        echo "  source ~/.bashrc    (or ~/.zshrc)"
+      fi
+
       exit 0
       ;;
     5)

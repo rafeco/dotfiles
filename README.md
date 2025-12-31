@@ -55,6 +55,8 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
 ### GitHub Account Switching
 - Config-driven account management supporting unlimited accounts
 - `gh-setup` - Interactive wizard to add/edit/remove accounts
+  - Shows list of configured accounts when removing
+  - Automatically reloads shell after saving changes
 - `gh-{name}` - Dynamic commands created for each configured account
   - Example: `gh-rafeco`, `gh-etsy`, `gh-consulting`
 - `gh-whoami` - Display current account status
