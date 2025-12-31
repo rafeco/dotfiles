@@ -6,7 +6,9 @@ syntax enable                   " Turn on syntax highlighting
 set encoding=utf-8              " Default text encoding
 set showcmd                     " display incomplete commands
 filetype plugin indent on       " load file type plugins + indentation
-set nohlsearch                  " Search highlighting is super annoying
+" set nohlsearch                " Search highlighting is super annoying
+set history=1000                " more command history
+set nrformats-=octal            " don't treat numbers with leading zeros as octal
 
 set path=$PWD/**                " Set the path variable to the current working
                                 " directory to make :find work
@@ -24,13 +26,17 @@ endif
 set nowrap                      " don't wrap lines
 set tabstop=2 shiftwidth=2      " a tab is two spaces
 set expandtab                   " use spaces, not tabs
+set smarttab                    " use shiftwidth for indentation
 set backspace=indent,eol,start  " backspace through everything in insert mode
+set formatoptions+=j            " remove comment leader when joining lines
 autocmd BufWritePre * :%s/\s\+$//e  " Strip trailing whitespace on save
 
 " File completion
 set wildmenu                    " Enhanced command line completion
 set wildmode=list:longest       " Complete the longest common match and show
                                 " a list of possible matches
+set complete-=i                 " don't scan included files for completion
+set tabpagemax=50               " max number of tab pages
 
 if exists("&wildignorecase")
   set wildignorecase            " Ignore case on autocomplete
@@ -65,6 +71,9 @@ set ruler                       " show cursor position
 set cursorline                  " highlight current line
 set scrolloff=3                 " keep 3 lines visible when scrolling
 set sidescrolloff=5             " keep 5 columns visible when scrolling
+set display+=lastline           " show partial last lines instead of @
+set ttimeout                    " timeout on key codes
+set ttimeoutlen=100             " faster escape sequence response
 
 " Status line
 set statusline=
@@ -84,10 +93,15 @@ set hidden                      " allow hidden buffers
 set updatetime=300              " faster completion
 set signcolumn=yes              " always show sign column
 set noshowmode                  " mode is shown in statusline
+set autoread                    " auto-reload files modified outside vim
 
 " Better split behavior
 set splitbelow                  " horizontal splits below
 set splitright                  " vertical splits to the right
+
+" Key mappings
+" Use <C-L> to clear search highlighting and update diffs
+nnoremap <silent> <C-L> :nohlsearch<C-R>=has('diff')?'<Bar>diffupdate':''<CR><CR><C-L>
 
 " Undo persistence
 if has('persistent_undo')
