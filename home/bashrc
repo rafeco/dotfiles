@@ -102,28 +102,37 @@ export LSCOLORS=ExGxBxDxCxEgEdxbxgxcxd
 # ============================================================================
 # The PS1 variable controls what your command prompt looks like
 
-# Function to show current git branch in prompt
-# Extracts the branch name from `git branch` output
-# Only shows when you're in a git repository
-parse_git_branch() {
-  git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
-}
-
-# Check if terminal supports colors
-if [[ "$COLORTERM" == "truecolor" ]] || [[ "$TERM" == *"256color"* ]]; then
-  # Colorful prompt with git branch
-  # Format: user@host:directory (git-branch)$
-  # Colors:
-  #   - Cyan: user@host
-  #   - Magenta: current directory
-  #   - Yellow: git branch (if in a git repo)
-  # The \[ and \] brackets tell bash these are non-printing characters
-  # so it can calculate line length correctly
-  export PS1='\[\033[01;36m\]\u@\h\[\033[00m\]:\[\033[01;35m\]\w\[\033[01;33m\]$(parse_git_branch)\[\033[00m\]\$ '
+# Use Starship prompt if available, otherwise fall back to custom prompt
+if command -v starship &>/dev/null; then
+  # Starship: A fast, modern, cross-shell prompt
+  # Install via: brew install starship
+  # Configure via: ~/.config/starship.toml
+  eval "$(starship init bash)"
 else
-  # Simple prompt for terminals without color support
-  # Format: user@host:directory$
-  export PS1='\u@\h:\w\$ '
+  # Custom prompt with git branch support
+  # Function to show current git branch in prompt
+  # Extracts the branch name from `git branch` output
+  # Only shows when you're in a git repository
+  parse_git_branch() {
+    git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+  }
+
+  # Check if terminal supports colors
+  if [[ "$COLORTERM" == "truecolor" ]] || [[ "$TERM" == *"256color"* ]]; then
+    # Colorful prompt with git branch
+    # Format: user@host:directory (git-branch)$
+    # Colors:
+    #   - Cyan: user@host
+    #   - Magenta: current directory
+    #   - Yellow: git branch (if in a git repo)
+    # The \[ and \] brackets tell bash these are non-printing characters
+    # so it can calculate line length correctly
+    export PS1='\[\033[01;36m\]\u@\h\[\033[00m\]:\[\033[01;35m\]\w\[\033[01;33m\]$(parse_git_branch)\[\033[00m\]\$ '
+  else
+    # Simple prompt for terminals without color support
+    # Format: user@host:directory$
+    export PS1='\u@\h:\w\$ '
+  fi
 fi
 
 # ============================================================================

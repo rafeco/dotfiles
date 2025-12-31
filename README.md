@@ -47,13 +47,14 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
 
 ### Bash (`home/bashrc`)
 - Smart history (10k, no duplicates)
-- Git-aware prompt with branch display
+- Starship prompt (if installed), otherwise git-aware prompt with branch display
 - Aliases: `ll`, `..`, `...`, git shortcuts (`gs`, `ga`, `gc`, `gd`, `gl`)
 - Functions: `mkcd`, `extract`, `psgrep`, `search`, `venv`
 - Platform detection for macOS/Linux
 
 ### Zsh (`home/zshrc`)
 - All Bash features plus zsh enhancements
+- Starship prompt (if installed), otherwise git-aware prompt with branch display
 - Menu-style auto-completion
 - Auto-cd, directory stack (`d`, `1`, `2`)
 - Arrow key history search

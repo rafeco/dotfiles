@@ -126,35 +126,44 @@ export LSCOLORS=ExGxBxDxCxEgEdxbxgxcxd
 # ============================================================================
 # Zsh has built-in version control system (vcs) support
 
-# Load the version control system info module
-autoload -Uz vcs_info
+# Use Starship prompt if available, otherwise fall back to custom prompt
+if command -v starship &>/dev/null; then
+  # Starship: A fast, modern, cross-shell prompt
+  # Install via: brew install starship
+  # Configure via: ~/.config/starship.toml
+  eval "$(starship init zsh)"
+else
+  # Custom prompt with git branch support
+  # Load the version control system info module
+  autoload -Uz vcs_info
 
-# Function to update vcs info before each prompt
-precmd_vcs_info() { vcs_info }
+  # Function to update vcs info before each prompt
+  precmd_vcs_info() { vcs_info }
 
-# Add the function to the list that runs before each prompt
-precmd_functions+=( precmd_vcs_info )
+  # Add the function to the list that runs before each prompt
+  precmd_functions+=( precmd_vcs_info )
 
-# Enable prompt substitution (allows variables in prompt)
-setopt PROMPT_SUBST
+  # Enable prompt substitution (allows variables in prompt)
+  setopt PROMPT_SUBST
 
-# Configure git format for vcs_info
-# Shows: (branch-name)
-zstyle ':vcs_info:git:*' formats ' (%b)'
+  # Configure git format for vcs_info
+  # Shows: (branch-name)
+  zstyle ':vcs_info:git:*' formats ' (%b)'
 
-# Only enable git (not svn, hg, etc.)
-zstyle ':vcs_info:*' enable git
+  # Only enable git (not svn, hg, etc.)
+  zstyle ':vcs_info:*' enable git
 
-# Define the prompt
-# Format: user@host:directory (git-branch)$
-# Colors:
-#   %F{cyan}: Cyan text
-#   %f: Reset to default color
-#   %n: Username
-#   %m: Hostname
-#   %~: Current directory (with ~ for home)
-#   %#: # for root, % for normal user
-PROMPT='%F{cyan}%n@%m%f:%F{magenta}%~%f%F{yellow}${vcs_info_msg_0_}%f%# '
+  # Define the prompt
+  # Format: user@host:directory (git-branch)$
+  # Colors:
+  #   %F{cyan}: Cyan text
+  #   %f: Reset to default color
+  #   %n: Username
+  #   %m: Hostname
+  #   %~: Current directory (with ~ for home)
+  #   %#: # for root, % for normal user
+  PROMPT='%F{cyan}%n@%m%f:%F{magenta}%~%f%F{yellow}${vcs_info_msg_0_}%f%# '
+fi
 
 # ============================================================================
 # FILE & DIRECTORY ALIASES
