@@ -1,0 +1,5 @@
+# Ignore workspace-specific files that shouldn't be in dotfiles
+*.code-workspace
+workspaceStorage/
+globalStorage/
+History/

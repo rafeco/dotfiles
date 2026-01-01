@@ -159,6 +159,27 @@ Run `~/.dotfiles/home/brew-setup` after installation to set up recommended devel
 
 The installer automatically installs [Claude Code](https://claude.ai/code), Anthropic's AI coding CLI. After installation, `claude` is available in your terminal.
 
+### VS Code Settings
+
+VS Code settings are managed separately from the main dotfiles installation:
+
+```bash
+~/.dotfiles/vscode-install.sh
+```
+
+This will symlink:
+- `settings.json` - Editor preferences
+- `keybindings.json` - Custom keyboard shortcuts (if present)
+- `snippets/` - Code snippets directory
+- Install extensions from `extensions.txt`
+
+To update your extensions list after installing new ones:
+```bash
+code --list-extensions > ~/.dotfiles/vscode/extensions.txt
+```
+
+See `vscode/README.md` for more details.
+
 ## Requirements
 
 Install with your package manager:
