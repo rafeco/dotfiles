@@ -1,13 +1,24 @@
 # VS Code Settings
 
-This directory contains VS Code user settings managed via dotfiles.
+This directory contains VS Code user settings managed via dotfiles. The primary purpose of this configuration is to provide **Vim keybindings** in VS Code that align with the vimrc settings, creating a consistent editing experience across both editors.
+
+## Vim Configuration
+
+The settings in this directory configure VS Code's Vim extension to match the behavior defined in the `.vimrc` file, ensuring:
+
+- Consistent keybindings between Vim and VS Code
+- Aligned editor behaviors (indentation, search, navigation)
+- Muscle memory transfer between both editors
+- Custom key mappings that work identically in both environments
+
+This allows seamless switching between traditional Vim and VS Code without having to adjust to different key behaviors.
 
 ## Files
 
-- `settings.json` - User preferences (theme, font, editor behavior)
-- `keybindings.json` - Custom keyboard shortcuts (optional)
+- `settings.json` - User preferences including Vim extension configuration, theme, font, and editor behavior
+- `keybindings.json` - Custom keyboard shortcuts that align with Vim/vimrc keybindings
 - `snippets/` - Code snippets
-- `extensions.txt` - List of installed extensions
+- `extensions.txt` - List of installed extensions (includes Vim extension)
 
 ## Installation
 
