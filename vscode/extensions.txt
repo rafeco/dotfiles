@@ -3,3 +3,7 @@ ms-python.python
 ms-python.vscode-pylance
 ms-python.vscode-python-envs
 vscodevim.vim
+eamodio.gitlens
+esbenp.prettier-vscode
+PhilHindle.errorlens
+pkief.material-icon-theme

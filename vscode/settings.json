@@ -26,5 +26,46 @@
         "<C-d>": true,
         "<C-s>": false,
         "<C-z>": false
-    }
+    },
+
+    // Auto-save
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+
+    // Format on save
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+
+    // Minimap
+    "editor.minimap.enabled": false,
+
+    // Bracket pair colorization
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+
+    // Terminal
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.fontSize": 14,
+
+    // File nesting
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "*.ts": "${capture}.js",
+        "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+        "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml"
+    },
+
+    // Smooth scrolling
+    "editor.smoothScrolling": true,
+    "workbench.list.smoothScrolling": true,
+
+    // Breadcrumbs
+    "breadcrumbs.enabled": true,
+
+    // Suggest settings
+    "editor.suggestSelection": "first",
+    "editor.acceptSuggestionOnCommitCharacter": false,
+
+    // Icons
+    "workbench.iconTheme": "material-icon-theme"
 }
