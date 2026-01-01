@@ -1,6 +1,6 @@
 # dotfiles
 
-This is my config. There are many like it, but this one is mine.
+This is my development environment. There are many like it, but this one is mine.
 
 Modern dotfiles for Git, Bash, Zsh, tmux, Vim, and VS Code. Works on macOS (with Homebrew), Linux, and GitHub Codespaces.
 
