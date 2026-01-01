@@ -5,5 +5,5 @@ ms-python.vscode-python-envs
 vscodevim.vim
 eamodio.gitlens
 esbenp.prettier-vscode
-PhilHindle.errorlens
+usernamehw.errorlens
 pkief.material-icon-theme
