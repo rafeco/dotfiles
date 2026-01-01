@@ -1,6 +1,6 @@
 # dotfiles
 
-Modern dotfiles for Git, Bash, Zsh, tmux, and Vim. Works on macOS, Linux, and GitHub Codespaces.
+Modern dotfiles for Git, Bash, Zsh, tmux, Vim, and VS Code. Works on macOS (with Homebrew), Linux, and GitHub Codespaces.
 
 ## Key Features
 
