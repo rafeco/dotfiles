@@ -197,7 +197,7 @@
 # The empty helper = line clears any system defaults before setting gh
 [credential "https://github.com"]
   helper =
-  helper = !/opt/homebrew/bin/gh auth git-credential
+  helper = !gh auth git-credential
 
 # ----------------------------------------------------------------------------
 # Platform-Specific Configuration
