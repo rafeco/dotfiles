@@ -34,7 +34,16 @@
       },
       "extensions": [
         "anthropics.claude-dev",
-        "editorconfig.editorconfig"
+        "editorconfig.editorconfig",
+        "ms-python.debugpy",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.vscode-python-envs",
+        "vscodevim.vim",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "usernamehw.errorlens",
+        "pkief.material-icon-theme"
       ]
     }
   },
