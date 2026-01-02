@@ -2,7 +2,7 @@
 
 This is my development environment. There are many like it, but this one is mine.
 
-Modern dotfiles for Git, Bash, Zsh, tmux, Vim, and VS Code. Works on macOS (with Homebrew), Linux, and GitHub Codespaces.
+Modern dotfiles for Git, Bash, Zsh, tmux, Vim, and VS Code. Works on macOS (with Homebrew), Linux, WSL (Windows Subsystem for Linux), and GitHub Codespaces.
 
 ## Key Features
 
@@ -169,11 +169,17 @@ VS Code settings are managed separately from the main dotfiles installation:
 ~/.dotfiles/vscode-install.sh
 ```
 
-This will symlink:
+The installer automatically detects your environment:
+- **macOS/Linux**: Symlinks settings files to VS Code's User directory
+- **WSL (Windows)**: Copies settings to Windows VS Code and installs extensions via `cmd.exe`
+
+This will install:
 - `settings.json` - Editor preferences
 - `keybindings.json` - Custom keyboard shortcuts (if present)
 - `snippets/` - Code snippets directory
-- Install extensions from `extensions.txt`
+- Extensions from `extensions.txt`
+
+**Note for WSL users**: Settings are copied (not symlinked) to work across the WSL/Windows boundary. Re-run the installer after updating your dotfiles to sync changes.
 
 To update your extensions list after installing new ones:
 ```bash

@@ -28,10 +28,21 @@ Run the VS Code install script:
 ~/.dotfiles/vscode-install.sh
 ```
 
-This will:
-1. Backup existing VS Code settings
-2. Create symlinks from this directory to VS Code's User directory
-3. Install extensions listed in `extensions.txt`
+The installer automatically detects your environment and adapts accordingly:
+
+**macOS/Linux:**
+1. Backups existing VS Code settings
+2. Creates symlinks from this directory to VS Code's User directory
+3. Installs extensions using the `code` command
+
+**WSL (Windows Subsystem for Linux):**
+1. Detects Windows VS Code installation
+2. Backs up existing settings
+3. Copies (not symlinks) settings to Windows VS Code User directory
+4. Installs extensions via `cmd.exe /c code` to target Windows VS Code
+5. Automatically handles the WSL/Windows file system boundary
+
+**Note for WSL users**: Since files are copied rather than symlinked, you'll need to re-run the installer after updating your dotfiles to sync changes to Windows VS Code.
 
 ## Updating Extensions List
 
@@ -51,5 +62,10 @@ cat ~/.dotfiles/vscode/extensions.txt | xargs -L 1 code --install-extension
 
 ## Location
 
+VS Code User directory locations:
+
 - **macOS**: `~/Library/Application Support/Code/User/`
 - **Linux**: `~/.config/Code/User/`
+- **WSL (Windows)**: `/mnt/c/Users/<username>/AppData/Roaming/Code/User/`
+
+On WSL, the installer automatically detects and uses the Windows VS Code installation.
