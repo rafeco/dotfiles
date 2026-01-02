@@ -330,6 +330,12 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     alias update='apt-get update && apt-get upgrade'
     alias install='apt-get install'
   fi
+
+  # Ubuntu package aliases
+  # On Ubuntu, some packages have different command names than their Homebrew equivalents
+  # Create aliases for compatibility with macOS workflow
+  command -v batcat &>/dev/null && alias bat='batcat'
+  command -v fdfind &>/dev/null && alias fd='fdfind'
 fi
 
 # ----------------------------------------------------------------------------

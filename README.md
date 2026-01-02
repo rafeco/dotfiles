@@ -27,12 +27,19 @@ cd ~/.dotfiles
 
 The installer will symlink configs from `home/*` to `~/.*`, backup existing files, and detect your environment (macOS/Linux/Codespaces).
 
-**After installation (macOS only):**
+**After installation:**
+
+**macOS:**
 ```bash
-~/.dotfiles/home/brew-setup
+~/.dotfiles/brew-setup
 ```
 
-This interactive script installs recommended development packages via Homebrew. See [Homebrew Package Management](#homebrew-package-management) for details.
+**Ubuntu/Debian:**
+```bash
+~/.dotfiles/ubuntu-setup
+```
+
+These interactive scripts install recommended development packages. See [Package Management](#package-management) for details.
 
 **Optional - Starship Prompt:**
 
@@ -97,13 +104,25 @@ Set this repository as your [dotfiles repository](https://docs.github.com/en/cod
 - Configuration stored in `~/.gh-accounts` (not tracked in git)
 - Template provided in `home/gh-accounts.example`
 
-### Homebrew Package Management
+### Package Management
 
-Run `~/.dotfiles/home/brew-setup` after installation to set up recommended development packages. The script:
-- Scans your system to show which packages are already installed
-- Lists missing packages with clear categorization
-- Confirms before installing anything
-- Handles installation failures gracefully
+Interactive package installation scripts for setting up recommended development tools.
+
+**macOS - Homebrew (`brew-setup`):**
+```bash
+~/.dotfiles/brew-setup
+```
+
+**Ubuntu/Debian - APT (`ubuntu-setup`):**
+```bash
+~/.dotfiles/ubuntu-setup
+```
+
+Both scripts:
+- Scan your system to show which packages are already installed
+- List missing packages with clear categorization
+- Confirm before installing anything
+- Handle installation failures gracefully
 
 **Packages installed by category:**
 
@@ -139,6 +158,11 @@ Run `~/.dotfiles/home/brew-setup` after installation to set up recommended devel
 **Linting & Formatting**
 - `shellcheck` - Shell script static analysis
 - `shfmt` - Shell script formatter
+
+**Ubuntu-specific notes:**
+- Most GNU utilities are already installed by default on Ubuntu
+- Some packages have different command names: `fd-find` → `fdfind`, `bat` → `batcat` (aliases included in dotfiles)
+- Special packages (`gh`, `eza`, `tldr`, `shfmt`) require additional installation steps with instructions provided by the script
 
 ### tmux (`home/tmux.conf`)
 - Prefix: `Ctrl-\`
@@ -190,19 +214,27 @@ See `vscode/README.md` for more details.
 
 ## Requirements
 
-Install with your package manager:
+**Minimum requirements:**
 
 **macOS:**
 ```bash
 brew install git tmux vim
 ```
 
-**Linux/WSL:**
+**Ubuntu/Debian/WSL:**
 ```bash
-sudo apt-get install git tmux vim
+sudo apt install git tmux vim
 ```
 
 Git is required; tmux and vim are optional.
+
+**Recommended packages:**
+
+After installing the dotfiles, run the package setup script for your platform to install additional development tools:
+- **macOS**: `~/.dotfiles/brew-setup`
+- **Ubuntu/Debian**: `~/.dotfiles/ubuntu-setup`
+
+See [Package Management](#package-management) for details.
 
 ## Customization
 

@@ -1,0 +1,302 @@
+#!/usr/bin/env bash
+# ============================================================================
+# Ubuntu Package Manager
+# ============================================================================
+# Interactive tool for installing recommended development packages on Ubuntu.
+# Checks current installation status and offers to install missing packages.
+#
+# This script is bash-specific to avoid shell compatibility issues.
+# ============================================================================
+
+set -e  # Exit on error
+
+echo "Ubuntu Package Manager"
+echo "======================"
+echo ""
+
+# Check if we're on Linux
+if [[ "$(uname -s)" != "Linux" ]]; then
+  echo "⚠ This script is only for Linux"
+  echo ""
+  echo "This script is designed for Ubuntu/Debian-based systems."
+  echo "On macOS, use the brew-setup script instead."
+  exit 1
+fi
+
+# Check if we're on Ubuntu/Debian (has apt)
+if ! command -v apt &>/dev/null; then
+  echo "⚠ APT package manager not found"
+  echo ""
+  echo "This script requires apt (Ubuntu/Debian)."
+  echo "For other distributions, use your package manager."
+  exit 1
+fi
+
+# Package mapping: friendly_name -> apt_package_name
+# Format: "name|apt-package|check-command"
+PACKAGE_MAPPINGS=(
+  # Core utilities (mostly already installed, but we check anyway)
+  "bash|bash|bash"
+  "gawk|gawk|gawk"
+
+  # Zsh Enhancements
+  "zsh-syntax-highlighting|zsh-syntax-highlighting|"
+  "zsh-autosuggestions|zsh-autosuggestions|"
+
+  # Development & Productivity
+  "git|git|git"
+  "jq|jq|jq"
+  "fzf|fzf|fzf"
+  "ripgrep|ripgrep|rg"
+  "fd|fd-find|fdfind"
+  "bat|bat|batcat"
+  "htop|htop|htop"
+  "tree|tree|tree"
+  "wget|wget|wget"
+  "curl|curl|curl"
+
+  # Linting & Formatting
+  "shellcheck|shellcheck|shellcheck"
+)
+
+# Packages that need special installation (URLs or additional steps)
+SPECIAL_PACKAGES=(
+  "gh"          # GitHub CLI (needs GitHub's repository)
+  "eza"         # Modern ls replacement (needs manual install)
+  "tldr"        # Simplified man pages (can use npm/pip)
+  "shfmt"       # Shell formatter (needs snap or binary)
+)
+
+echo "✓ APT package manager found"
+echo ""
+
+# Function to check if a package/command is installed
+is_installed() {
+  local check_cmd="$1"
+  [[ -z "$check_cmd" ]] && return 1
+  command -v "$check_cmd" &>/dev/null
+  return $?
+}
+
+# Function to check if apt package is installed
+is_apt_installed() {
+  local package="$1"
+  dpkg -l "$package" 2>/dev/null | grep -q "^ii"
+  return $?
+}
+
+# Scan packages and categorize them
+echo "Scanning installed packages..."
+installed=()
+missing=()
+missing_apt=()
+
+for mapping in "${PACKAGE_MAPPINGS[@]}"; do
+  IFS='|' read -r name apt_pkg check_cmd <<< "$mapping"
+
+  # Use check command if provided, otherwise check apt package
+  if [[ -n "$check_cmd" ]]; then
+    if is_installed "$check_cmd"; then
+      installed+=("$name")
+    else
+      missing+=("$name")
+      missing_apt+=("$apt_pkg")
+    fi
+  else
+    if is_apt_installed "$apt_pkg"; then
+      installed+=("$name")
+    else
+      missing+=("$name")
+      missing_apt+=("$apt_pkg")
+    fi
+  fi
+done
+
+# Check special packages
+special_missing=()
+special_installed=()
+
+for pkg in "${SPECIAL_PACKAGES[@]}"; do
+  if is_installed "$pkg"; then
+    special_installed+=("$pkg")
+  else
+    special_missing+=("$pkg")
+  fi
+done
+
+echo ""
+echo "Installation Status:"
+echo "===================="
+
+# Display installed packages
+if [[ ${#installed[@]} -gt 0 || ${#special_installed[@]} -gt 0 ]]; then
+  all_installed=("${installed[@]}" "${special_installed[@]}")
+  echo "✓ Already installed (${#all_installed[@]}):"
+  if [[ ${#all_installed[@]} -gt 10 ]]; then
+    printf "  %s\n" "${all_installed[@]}" | column -c 80 || printf "  %s\n" "${all_installed[@]}"
+  else
+    echo "  ${all_installed[*]}"
+  fi
+else
+  echo "✓ Already installed: (none)"
+fi
+
+echo ""
+
+# Display missing packages
+total_missing=$((${#missing[@]} + ${#special_missing[@]}))
+if [[ $total_missing -gt 0 ]]; then
+  echo "⚠ Missing ($total_missing):"
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "  Standard packages (${#missing[@]}):"
+    if [[ ${#missing[@]} -gt 10 ]]; then
+      printf "    %s\n" "${missing[@]}" | column -c 76 || printf "    %s\n" "${missing[@]}"
+    else
+      echo "    ${missing[*]}"
+    fi
+  fi
+  if [[ ${#special_missing[@]} -gt 0 ]]; then
+    echo "  Special packages (${#special_missing[@]}) - require manual installation:"
+    echo "    ${special_missing[*]}"
+  fi
+else
+  echo "✓ All recommended packages are installed!"
+  echo ""
+  echo "You're all set. No action needed."
+  exit 0
+fi
+
+echo ""
+echo "These packages provide:"
+echo "  • Core development tools (git, jq, curl, wget)"
+echo "  • Modern CLI tools (ripgrep, fd, bat, fzf)"
+echo "  • Zsh enhancements (syntax highlighting, autosuggestions)"
+echo "  • Development tools (shellcheck)"
+echo ""
+
+# Only proceed if there are apt packages to install
+if [[ ${#missing_apt[@]} -eq 0 ]]; then
+  echo "No standard packages to install via apt."
+  echo ""
+  if [[ ${#special_missing[@]} -gt 0 ]]; then
+    echo "Special packages need manual installation. See instructions below."
+  fi
+  exit 0
+fi
+
+# Ask for confirmation
+read -p "Install ${#missing_apt[@]} missing packages via apt? [y/N]: " confirm
+confirm="${confirm:-N}"
+
+if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+  echo ""
+  echo "Cancelled. No packages installed."
+  echo ""
+  echo "To install packages manually:"
+  echo "  sudo apt update"
+  echo "  sudo apt install ${missing_apt[*]}"
+  exit 0
+fi
+
+# Update package lists
+echo ""
+echo "Updating package lists..."
+if ! sudo apt update; then
+  echo "⚠ Failed to update package lists"
+  exit 1
+fi
+
+# Install missing packages
+echo ""
+echo "Installing packages..."
+echo "====================="
+
+# Temporarily disable set -e to handle failures gracefully
+set +e
+
+installed_count=0
+failed=()
+
+for i in "${!missing[@]}"; do
+  name="${missing[$i]}"
+  apt_pkg="${missing_apt[$i]}"
+  echo -n "Installing $name... "
+  if sudo apt install -y "$apt_pkg" &>/dev/null; then
+    echo "✓"
+    ((installed_count++))
+  else
+    echo "⚠ Failed"
+    failed+=("$name")
+  fi
+done
+
+# Re-enable set -e
+set -e
+
+# Display summary
+echo ""
+echo "Installation Complete"
+echo "====================="
+echo "✓ Successfully installed: $installed_count package(s)"
+
+if [[ ${#failed[@]} -gt 0 ]]; then
+  echo "⚠ Failed to install: ${#failed[@]} package(s)"
+  echo "  Packages: ${failed[*]}"
+  echo ""
+  echo "You can try installing these manually with apt."
+fi
+
+# Show special package installation instructions
+if [[ ${#special_missing[@]} -gt 0 ]]; then
+  echo ""
+  echo "Special Packages Installation"
+  echo "=============================="
+  echo "The following packages need manual installation:"
+  echo ""
+
+  for pkg in "${special_missing[@]}"; do
+    case "$pkg" in
+      gh)
+        echo "• GitHub CLI (gh):"
+        echo "  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg"
+        echo "  echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null"
+        echo "  sudo apt update && sudo apt install gh"
+        echo ""
+        ;;
+      eza)
+        echo "• eza (modern ls):"
+        echo "  sudo mkdir -p /etc/apt/keyrings"
+        echo "  wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg"
+        echo "  echo \"deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main\" | sudo tee /etc/apt/sources.list.d/gierens.list"
+        echo "  sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list"
+        echo "  sudo apt update && sudo apt install eza"
+        echo ""
+        ;;
+      tldr)
+        echo "• tldr (simplified man pages):"
+        echo "  Option 1 (npm): npm install -g tldr"
+        echo "  Option 2 (pip): pip install tldr"
+        echo ""
+        ;;
+      shfmt)
+        echo "• shfmt (shell formatter):"
+        echo "  Option 1 (snap): sudo snap install shfmt"
+        echo "  Option 2 (binary): wget https://github.com/mvdan/sh/releases/latest/download/shfmt_v3.8.0_linux_amd64 -O ~/.local/bin/shfmt && chmod +x ~/.local/bin/shfmt"
+        echo ""
+        ;;
+    esac
+  done
+fi
+
+# Show notes about renamed commands on Ubuntu
+echo ""
+echo "Ubuntu Package Notes"
+echo "===================="
+echo "Some packages have different command names on Ubuntu:"
+echo "  • fd-find → use 'fdfind' command (or create alias: alias fd=fdfind)"
+echo "  • bat → use 'batcat' command (or create alias: alias bat=batcat)"
+echo ""
+echo "These aliases are already included in the dotfiles bashrc/zshrc."
+
+echo ""
+echo "Done! Your development environment is ready."
