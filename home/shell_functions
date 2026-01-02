@@ -80,6 +80,22 @@ venv() {
 
       if [ $exit_code -eq 0 ]; then
         venv_path=".venv"
+        echo "✓ Created virtual environment in .venv"
+
+        # Check if requirements.txt exists and offer to install packages
+        if [ -f "requirements.txt" ]; then
+          echo -n "Install packages from requirements.txt? [y/N] "
+          read install_response
+          if [[ "$install_response" =~ ^[Yy]$ ]]; then
+            echo "Installing packages..."
+            .venv/bin/pip install -r requirements.txt
+            if [ $? -eq 0 ]; then
+              echo "✓ Packages installed successfully"
+            else
+              echo "✗ Failed to install some packages"
+            fi
+          fi
+        fi
       else
         echo "✗ Failed to create virtual environment"
         if [ -n "$error_output" ]; then
