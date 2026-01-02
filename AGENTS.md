@@ -4,11 +4,12 @@ This document provides guidance for AI coding agents (like Claude Code) working 
 
 ## Repository Overview
 
-This is a personal dotfiles repository for managing development environment configuration across macOS, Linux, and GitHub Codespaces. It includes configurations for Git, Bash, Zsh, tmux, and Vim, with features like:
+This is a personal dotfiles repository for managing development environment configuration across macOS, Linux, WSL (Windows Subsystem for Linux), GitHub Codespaces, and Dev Containers. It includes configurations for Git, Bash, Zsh, tmux, Vim, and VS Code, with features like:
 
 - Python virtual environment management (`venv` command)
 - GitHub account switching (`gh-setup` and dynamic `gh-{name}` commands)
-- Homebrew package management (macOS)
+- Package management for macOS (Homebrew) and Ubuntu/Debian (APT)
+- VS Code integration with platform-specific handling (WSL, Dev Containers)
 - Cross-platform compatibility with sensible defaults
 
 ## Commit Conventions
@@ -123,6 +124,14 @@ Don't artificially split coherent changes just to keep commits small. A complete
 2. Include a comment explaining why (e.g., `# Contains personal information`)
 3. Provide an example template if helpful (e.g., `home/gh-accounts.example`)
 
+#### Working with VS Code and Platform Detection
+
+- **vscode-install.sh**: Handles platform detection for WSL, macOS, and Linux
+- **WSL detection**: Uses `/proc/version` check and finds Windows user directory
+- **Key difference**: WSL copies files (not symlinks) to work across file system boundary
+- **Dev containers**: Extensions managed in `.devcontainer/devcontainer.json`
+- **Testing**: Run the installer on each platform to verify detection and installation
+
 ### Testing Changes
 
 Always test before committing:
@@ -149,12 +158,13 @@ git config -f home/gitconfig --list
 
 ## Key Principles
 
-1. **Cross-platform compatibility**: Test or consider macOS, Linux, and Codespaces
+1. **Cross-platform compatibility**: Test or consider macOS, Linux, WSL, Codespaces, and Dev Containers
 2. **Keep bash and zsh in sync**: Maintain feature parity, differ only for shell-specific syntax
-3. **Privacy by default**: Never commit personal information, use `.local` files
-4. **Sensible defaults**: Configuration should work out-of-the-box for most users
-5. **No over-engineering**: Add only what's requested or clearly necessary
-6. **User feedback**: Shell functions should provide clear success/error messages
+3. **Platform-specific handling**: Use detection (e.g., `$OSTYPE`, `/proc/version`) to adapt behavior
+4. **Privacy by default**: Never commit personal information, use `.local` files
+5. **Sensible defaults**: Configuration should work out-of-the-box for most users
+6. **No over-engineering**: Add only what's requested or clearly necessary
+7. **User feedback**: Shell functions and scripts should provide clear success/error messages
 
 ## Anti-Patterns to Avoid
 
@@ -176,15 +186,21 @@ git config -f home/gitconfig --list
 ## Quick Reference
 
 **File organization:**
-- `home/*` → Symlinked to `~/.*`
+- `home/*` → Symlinked to `~/.*` (dotfiles)
 - `platform/*` → Platform-specific configs
 - `.claude/*` → Claude Code settings and context
+- `.devcontainer/*` → Dev container configuration
+- `vscode/*` → VS Code settings and extensions
+- Base directory → Setup scripts and installers
 
 **Key files:**
 - `home/bashrc`, `home/zshrc` → Shell configs (keep in sync)
 - `home/gitconfig` → Universal git config
 - `home/shell_functions` → Shared shell functions (sourced by both shells)
-- `install.sh` → Main installer (creates symlinks)
+- `install.sh` → Main dotfiles installer (creates symlinks)
+- `brew-setup` → macOS package installer (Homebrew)
+- `ubuntu-setup` → Ubuntu/Debian package installer (APT)
+- `vscode-install.sh` → VS Code settings installer (handles WSL, macOS, Linux)
 
 **Testing:**
 - Syntax: `bash -n FILE` or `zsh -n FILE`
