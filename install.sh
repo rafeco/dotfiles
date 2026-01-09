@@ -171,6 +171,6 @@ fi
 if [[ "$OS" == "Darwin" ]]; then
   echo ""
   echo "Optional setup:"
-  echo "  Run ~/.dotfiles/home/brew-setup to install recommended Homebrew packages"
+  echo "  Run ~/.dotfiles/brew-setup to install recommended Homebrew packages"
   echo ""
 fi

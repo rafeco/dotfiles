@@ -136,16 +136,14 @@ if [ -f "$VSCODE_DIR/extensions.txt" ]; then
     ORIGINAL_DIR=$(pwd)
     cd /mnt/c 2>/dev/null || cd /tmp
 
-    # Read extensions into an array to avoid input conflicts
-    mapfile -t extensions < <(grep -v '^\s*$' "$VSCODE_DIR/extensions.txt" | grep -v '^\s*#')
-
-    for extension in "${extensions[@]}"; do
+    # Read and install extensions (using while-read for bash 3.2 compatibility)
+    while IFS= read -r extension; do
       echo "  Installing $extension..."
       # Capture output and filter noise
       output=$($CODE_CMD --install-extension "$extension" --force 2>&1)
       # Show only important messages
       echo "$output" | grep -E "(successfully installed|already installed|Failed|Error|not found)" | sed 's/^/    /' || true
-    done
+    done < <(grep -v '^\s*$' "$VSCODE_DIR/extensions.txt" | grep -v '^\s*#')
 
     # Return to original directory
     cd "$ORIGINAL_DIR"
