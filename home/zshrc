@@ -523,3 +523,4 @@ fi
 #   macOS: brew install zsh-autosuggestions zsh-syntax-highlighting
 #   Linux: sudo apt install zsh-autosuggestions zsh-syntax-highlighting
 # ============================================================================
+export GPG_TTY="$(tty)"

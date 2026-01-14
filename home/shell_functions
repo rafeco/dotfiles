@@ -162,6 +162,10 @@ if [[ -f ~/.gh-accounts ]]; then
       local git_name=\$(git config -f \"\$config_file\" \"account.\$account_name.name\")
       local git_email=\$(git config -f \"\$config_file\" \"account.\$account_name.email\")
 
+      # Read optional GPG settings
+      local gpg_key=\$(git config -f \"\$config_file\" \"account.\$account_name.signingkey\")
+      local gpg_program=\$(git config -f \"\$config_file\" \"account.\$account_name.gpgprogram\")
+
       # Validate we have all required settings
       if [[ -z \"\$gh_user\" ]] || [[ -z \"\$git_name\" ]] || [[ -z \"\$git_email\" ]]; then
         echo \"⚠ Account '\$account_name' is not properly configured\"
@@ -182,9 +186,22 @@ if [[ -f ~/.gh-accounts ]]; then
         printf '[user]\\n'
         printf '  name = %s\\n' \"\$git_name\"
         printf '  email = %s\\n' \"\$git_email\"
+        # Add GPG signing config if key is configured for this account
+        if [[ -n \"\$gpg_key\" ]]; then
+          printf '  signingkey = %s\\n' \"\$gpg_key\"
+          printf '[commit]\\n'
+          printf '  gpgsign = true\\n'
+          if [[ -n \"\$gpg_program\" ]]; then
+            printf '[gpg]\\n'
+            printf '  program = %s\\n' \"\$gpg_program\"
+          fi
+        fi
       } > ~/.gitconfig.local
 
       echo \"✓ Switched to \$account_name account (\$gh_user / \$git_name <\$git_email>)\"
+      if [[ -n \"\$gpg_key\" ]]; then
+        echo \"  GPG signing enabled (key: \$gpg_key)\"
+      fi
     }"
   done < <(git config -f ~/.gh-accounts --get-regexp '^account\.' | \
            sed 's/^account\.\([^.]*\)\..*/\1/' | sort -u)
