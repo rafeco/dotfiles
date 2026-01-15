@@ -410,3 +410,4 @@ fi
 #   - gh-work: Switch to work account
 #   - gh-whoami: Show current account
 # ============================================================================
+export GPG_TTY="$(tty)"
