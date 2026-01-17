@@ -141,6 +141,13 @@ gh-whoami() {
   echo "git user: $(git config user.name) <$(git config user.email)>"
 }
 
+# Gist command using gh CLI
+# Automatically uses current gh auth, so switching accounts with gh-{name}
+# also switches the gist identity
+gist() {
+  gh gist "$@"
+}
+
 # ============================================================================
 # Dynamic Function Generation
 # ============================================================================
