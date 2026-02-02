@@ -169,9 +169,11 @@ if [[ -f ~/.gh-accounts ]]; then
       local git_name=\$(git config -f \"\$config_file\" \"account.\$account_name.name\")
       local git_email=\$(git config -f \"\$config_file\" \"account.\$account_name.email\")
 
-      # Read optional GPG settings
+      # Read optional signing settings (GPG or SSH)
       local gpg_key=\$(git config -f \"\$config_file\" \"account.\$account_name.signingkey\")
+      local gpg_format=\$(git config -f \"\$config_file\" \"account.\$account_name.gpgformat\")
       local gpg_program=\$(git config -f \"\$config_file\" \"account.\$account_name.gpgprogram\")
+      local allowed_signers=\$(git config -f \"\$config_file\" \"account.\$account_name.allowedsigners\")
 
       # Validate we have all required settings
       if [[ -z \"\$gh_user\" ]] || [[ -z \"\$git_name\" ]] || [[ -z \"\$git_email\" ]]; then
@@ -193,12 +195,20 @@ if [[ -f ~/.gh-accounts ]]; then
         printf '[user]\\n'
         printf '  name = %s\\n' \"\$git_name\"
         printf '  email = %s\\n' \"\$git_email\"
-        # Add GPG signing config if key is configured for this account
+        # Add signing config if key is configured for this account
         if [[ -n \"\$gpg_key\" ]]; then
           printf '  signingkey = %s\\n' \"\$gpg_key\"
           printf '[commit]\\n'
           printf '  gpgsign = true\\n'
-          if [[ -n \"\$gpg_program\" ]]; then
+          # Handle SSH vs GPG signing format
+          if [[ \"\$gpg_format\" == \"ssh\" ]]; then
+            printf '[gpg]\\n'
+            printf '  format = ssh\\n'
+            if [[ -n \"\$allowed_signers\" ]]; then
+              printf '[gpg \"ssh\"]\\n'
+              printf '  allowedSignersFile = %s\\n' \"\$allowed_signers\"
+            fi
+          elif [[ -n \"\$gpg_program\" ]]; then
             printf '[gpg]\\n'
             printf '  program = %s\\n' \"\$gpg_program\"
           fi
@@ -207,7 +217,11 @@ if [[ -f ~/.gh-accounts ]]; then
 
       echo \"✓ Switched to \$account_name account (\$gh_user / \$git_name <\$git_email>)\"
       if [[ -n \"\$gpg_key\" ]]; then
-        echo \"  GPG signing enabled (key: \$gpg_key)\"
+        if [[ \"\$gpg_format\" == \"ssh\" ]]; then
+          echo \"  SSH signing enabled (key: \$gpg_key)\"
+        else
+          echo \"  GPG signing enabled (key: \$gpg_key)\"
+        fi
       fi
     }"
   done < <(git config -f ~/.gh-accounts --get-regexp '^account\.' | \
