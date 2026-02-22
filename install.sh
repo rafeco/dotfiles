@@ -55,6 +55,19 @@ if [ -d "$DOTFILES_DIR/home/claude" ]; then
   done
 fi
 
+# Install ~/.config files
+echo ""
+echo "Installing ~/.config files..."
+mkdir -p "$HOME/.config"
+if [ -d "$DOTFILES_DIR/home/config" ]; then
+  for file in "$DOTFILES_DIR"/home/config/*; do
+    if [ -f "$file" ]; then
+      filename=$(basename "$file")
+      link_file "$file" "$HOME/.config/$filename"
+    fi
+  done
+fi
+
 # Create necessary directories
 echo ""
 echo "Creating necessary directories..."

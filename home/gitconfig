@@ -220,3 +220,5 @@
 # This file is safe to edit manually and won't be overwritten
 [include]
   path = ~/.gitconfig.local
+[gpg]
+	format = ssh
