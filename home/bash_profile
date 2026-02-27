@@ -1,0 +1,5 @@
+# ~/.bash_profile - executed for login shells (e.g., SSH sessions)
+# Delegate to ~/.bashrc for all configuration
+if [ -f "$HOME/.bashrc" ]; then
+  source "$HOME/.bashrc"
+fi
