@@ -154,8 +154,8 @@ if [ ! -f "$HOME/.claude/bin/claude" ] && [ ! -f "$HOME/.local/bin/claude" ]; th
   echo "Installing Claude Code..."
   if curl -fsSL https://claude.ai/install.sh | bash; then
     echo "  ✓ Claude Code installed successfully"
-    # Source the shell config to get claude in PATH for next steps
-    export PATH="$HOME/.claude/bin:$PATH"
+    # Add Claude to PATH for the rest of this script
+    export PATH="$HOME/.claude/bin:$HOME/.local/bin:$PATH"
   else
     echo "  ⚠️  Claude Code installation failed. You can install manually:"
     echo "     curl -fsSL https://claude.ai/install.sh | bash"

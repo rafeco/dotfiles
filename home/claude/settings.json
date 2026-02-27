@@ -1,10 +1,11 @@
 {
-  "enabledPlugins": {
-    "superpowers@superpowers-marketplace": false
-  },
-  "alwaysThinkingEnabled": true,
   "statusLine": {
     "type": "command",
     "command": "bash $HOME/.claude/statusline-command.sh"
-  }
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": false,
+    "frontend-design@claude-code-plugins": true
+  },
+  "alwaysThinkingEnabled": true
 }
