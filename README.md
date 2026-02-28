@@ -24,6 +24,7 @@ Modern dotfiles for Git, Bash, Zsh, tmux, Vim, and VS Code. Works on macOS (with
   - [Python Virtual Environments](#python-virtual-environments)
   - [GitHub Account Switching](#github-account-switching)
 - [Customization](#customization)
+- [Guides](#guides)
 - [License](#license)
 
 ## Key Features
@@ -318,6 +319,15 @@ gh-setup  # Or use interactive wizard
 **Shell customization:**
 - Edit `~/.bashrc.local` or `~/.zshrc.local` for personal shell settings (optional)
 - Shared functions can be extended in `~/.shell_functions.local` (optional)
+
+## Guides
+
+Detailed user guides for each tool, customized to this configuration:
+
+- **[Shell Guide](docs/shell-guide.md)** - Aliases, functions, key bindings, zsh features, GitHub account switching
+- **[Vim Guide](docs/vim-guide.md)** - Navigation, editing, splits, search, completion, per-language settings
+- **[tmux Guide](docs/tmux-guide.md)** - Sessions, windows, panes, copy mode, mouse support
+- **[CLI Tools Guide](docs/cli-tools-guide.md)** - Modern command replacements (`rg`, `fd`, `bat`, `eza`, `fzf`) with usage examples
 
 ## License
 
