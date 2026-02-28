@@ -105,17 +105,22 @@ Defined in `~/.shell_functions`, available in both bash and zsh.
 
 ## GitHub Account Switching
 
-Configured via `~/.gh-accounts`. Each account gets a `gh-<name>` command
-generated automatically at shell startup.
+Run `gh-setup` to configure your accounts interactively. Account
+settings are stored in `~/.gh-accounts`. At shell startup, a
+`gh-<name>` command is generated for each account in that file,
+so the available commands depend on what you've configured.
+
+For example, if you set up accounts named "personal" and "work",
+you get `gh-personal` and `gh-work` commands.
+
+Each `gh-<name>` command switches both the `gh` CLI auth and
+the git user/email/signing config (written to `~/.gitconfig.local`).
 
 | Command | Description |
 |---|---|
-| `gh-personal` | Switch to personal GitHub account |
-| `gh-work` | Switch to work GitHub account |
+| `gh-<name>` | Switch to a configured account |
 | `gh-whoami` | Show current GitHub and git identity |
 | `gist` | Shortcut for `gh gist` |
-
-Run `gh-setup` to configure accounts interactively.
 
 ## Key Bindings
 
