@@ -14,26 +14,44 @@ echo "Homebrew Package Manager"
 echo "========================"
 echo ""
 
-# Check if we're on macOS
-if [[ "$(uname -s)" != "Darwin" ]]; then
-  echo "⚠ This script is only for macOS"
+# Check if Homebrew is installed
+if ! command -v brew &>/dev/null; then
+  echo "⚠ Homebrew not found"
   echo ""
-  echo "Homebrew package management is designed for macOS."
-  echo "On Linux, use your distribution's package manager instead."
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    echo "Install Homebrew from: https://brew.sh"
+    echo ""
+    echo "Installation command:"
+    echo '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+  else
+    echo "Install Linuxbrew from: https://brew.sh"
+    echo ""
+    echo "Installation command:"
+    echo '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+    echo ""
+    echo "Then add to your shell:"
+    echo '  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
+  fi
   exit 1
 fi
 
 # Recommended packages organized by category
-RECOMMENDED_PACKAGES=(
-  # GNU Core Utilities (macOS compatibility layer)
-  bash
-  coreutils
-  grep
-  gnu-sed
-  gawk
-  findutils
-  diffutils
+RECOMMENDED_PACKAGES=()
 
+# GNU Core Utilities — only needed on macOS where the system ships BSD versions
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  RECOMMENDED_PACKAGES+=(
+    bash
+    coreutils
+    grep
+    gnu-sed
+    gawk
+    findutils
+    diffutils
+  )
+fi
+
+RECOMMENDED_PACKAGES+=(
   # Zsh Enhancements
   zsh-syntax-highlighting
   zsh-autosuggestions
@@ -58,18 +76,6 @@ RECOMMENDED_PACKAGES=(
   shellcheck
   shfmt
 )
-
-# Check if Homebrew is installed
-if ! command -v brew &>/dev/null; then
-  echo "⚠ Homebrew not installed"
-  echo ""
-  echo "Homebrew is required to use this script."
-  echo "Install from: https://brew.sh"
-  echo ""
-  echo "Installation command:"
-  echo '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
-  exit 1
-fi
 
 echo "✓ Homebrew found: $(brew --version | head -n1)"
 echo ""

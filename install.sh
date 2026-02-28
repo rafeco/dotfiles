@@ -68,6 +68,16 @@ if [ -d "$DOTFILES_DIR/home/config" ]; then
   done
 fi
 
+# Install utility scripts to ~/.local/bin (on PATH)
+echo ""
+echo "Installing utility scripts..."
+mkdir -p "$HOME/.local/bin"
+for script in gh-setup; do
+  if [ -f "$DOTFILES_DIR/$script" ]; then
+    link_file "$DOTFILES_DIR/$script" "$HOME/.local/bin/$script"
+  fi
+done
+
 # Create necessary directories
 echo ""
 echo "Creating necessary directories..."
@@ -126,6 +136,13 @@ if [[ "$OS" == "Darwin" ]]; then
   fi
 fi
 
+# Linux-specific setup
+if [[ "$OS" == "Linux" ]]; then
+  if [ -d /home/linuxbrew/.linuxbrew ] || command -v brew &>/dev/null; then
+    echo "  ✓ Linuxbrew found"
+  fi
+fi
+
 # Configure platform-specific Git settings
 echo ""
 echo "Configuring platform-specific Git settings..."
@@ -181,7 +198,7 @@ if [[ "$OS" == "Darwin" ]]; then
 else
   echo "  source ~/.bashrc"
 fi
-if [[ "$OS" == "Darwin" ]]; then
+if [[ "$OS" == "Darwin" ]] || { [[ "$OS" == "Linux" ]] && { [ -d /home/linuxbrew/.linuxbrew ] || command -v brew &>/dev/null; }; }; then
   echo ""
   echo "Optional setup:"
   echo "  Run ~/.dotfiles/brew-setup to install recommended Homebrew packages"

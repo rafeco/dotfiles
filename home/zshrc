@@ -283,6 +283,12 @@ if [ -f "$HOME/.shell_functions" ]; then
   source "$HOME/.shell_functions"
 fi
 
+# Linuxbrew (Homebrew on Linux)
+# Initialize Linuxbrew if installed — adds brew and its packages to PATH
+if [[ "$OSTYPE" == "linux-gnu"* ]] && [ -d /home/linuxbrew/.linuxbrew ]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
 # ============================================================================
 # PLATFORM-SPECIFIC CONFIGURATION
 # ============================================================================
@@ -322,6 +328,14 @@ fi
 # Linux Specific Settings
 # ----------------------------------------------------------------------------
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  # Homebrew aliases and completions (Linuxbrew)
+  if type brew &>/dev/null; then
+    alias brewup='brew update && brew upgrade && brew cleanup'
+    FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+    autoload -Uz compinit
+    compinit
+  fi
+
   # Package management shortcuts (Debian/Ubuntu)
   if command -v sudo &>/dev/null; then
     alias update='sudo apt-get update && sudo apt-get upgrade'
@@ -448,9 +462,8 @@ if [ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
   source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
-# macOS zsh plugins via Homebrew
-# Same plugins as above, but for macOS installations
-if [[ "$OSTYPE" == "darwin"* ]] && type brew &>/dev/null; then
+# Zsh plugins via Homebrew (macOS or Linuxbrew)
+if type brew &>/dev/null; then
   if [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
     source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
   fi

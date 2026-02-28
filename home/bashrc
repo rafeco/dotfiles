@@ -238,6 +238,12 @@ if [ -f "$HOME/.shell_functions" ]; then
   source "$HOME/.shell_functions"
 fi
 
+# Linuxbrew (Homebrew on Linux)
+# Initialize Linuxbrew if installed — adds brew and its packages to PATH
+if [[ "$OSTYPE" == "linux-gnu"* ]] && [ -d /home/linuxbrew/.linuxbrew ]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
 # ============================================================================
 # PLATFORM-SPECIFIC CONFIGURATION
 # ============================================================================
@@ -273,6 +279,11 @@ fi
 # Linux Specific Settings
 # ----------------------------------------------------------------------------
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  # Homebrew aliases (Linuxbrew)
+  if type brew &>/dev/null; then
+    alias brewup='brew update && brew upgrade && brew cleanup'
+  fi
+
   # Package management shortcuts (Debian/Ubuntu)
   # Uses sudo if available, otherwise runs as-is (for Docker containers)
   if command -v sudo &>/dev/null; then
