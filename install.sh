@@ -165,6 +165,39 @@ else
   echo "  No platform override found. Using ~/.gitconfig.platform as a local override."
 fi
 
+# Install work-specific Claude configuration if repo is present
+WORK_CLAUDE_DIR="$HOME/.claude-work"
+if [ -d "$WORK_CLAUDE_DIR" ]; then
+  echo ""
+  echo "Installing work Claude configuration from $WORK_CLAUDE_DIR..."
+
+  # Symlink work skills
+  if [ -d "$WORK_CLAUDE_DIR/skills" ]; then
+    for skill_dir in "$WORK_CLAUDE_DIR"/skills/*/; do
+      if [ -d "$skill_dir" ]; then
+        skill_name=$(basename "$skill_dir")
+        mkdir -p "$HOME/.claude/skills/$skill_name"
+        for file in "$skill_dir"*; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            link_file "$file" "$HOME/.claude/skills/$skill_name/$filename"
+          fi
+        done
+      fi
+    done
+  fi
+
+  # Symlink work CLAUDE.md
+  if [ -f "$WORK_CLAUDE_DIR/CLAUDE.md" ]; then
+    link_file "$WORK_CLAUDE_DIR/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+  fi
+
+  # Symlink work settings.local.json
+  if [ -f "$WORK_CLAUDE_DIR/settings.local.json" ]; then
+    link_file "$WORK_CLAUDE_DIR/settings.local.json" "$HOME/.claude/settings.local.json"
+  fi
+fi
+
 # Install Claude Code if not already installed
 if [ ! -f "$HOME/.claude/bin/claude" ] && [ ! -f "$HOME/.local/bin/claude" ]; then
   echo ""
