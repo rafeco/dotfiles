@@ -125,14 +125,14 @@
 # Merge Settings
 # ----------------------------------------------------------------------------
 [merge]
-  # Use zdiff3 conflict style for more context
+  # Use diff3 conflict style for more context
   # Shows three sections in merge conflicts:
   #   1. Your changes
   #   2. The common ancestor (what the code looked like before both changes)
   #   3. Their changes
   # The ancestor section helps you understand what both sides were trying
   # to accomplish, making conflicts much easier to resolve.
-  conflictstyle = zdiff3
+	conflictstyle = diff3
 
 # ----------------------------------------------------------------------------
 # Command Aliases
