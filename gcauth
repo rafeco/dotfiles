@@ -1,0 +1,400 @@
+#!/usr/bin/env bash
+# gcauth — Google Cloud auth wrapper with session tracking and diagnostics
+# Usage:
+#   gcauth refresh        — re-auth both user + ADC credentials in one shot
+#   gcauth login          — run gcloud auth login, log the event
+#   gcauth adc            — run gcloud auth application-default login, log the event
+#   gcauth status         — show current token + session status
+#   gcauth log [N]        — show auth history
+#   gcauth watch [N]      — poll token status every N seconds (default 60)
+#   gcauth diagnose       — check for common auth expiry issues
+
+set -euo pipefail
+
+LOG_DIR="$HOME/.gcauth"
+LOG_FILE="$LOG_DIR/auth.log"
+SESSION_FILE="$LOG_DIR/session.json"
+SESSION_DURATION=86400  # 24 hours in seconds (org policy)
+mkdir -p "$LOG_DIR"
+
+ts() { date '+%Y-%m-%d %H:%M:%S'; }
+
+log_event() {
+    local event="$1"
+    shift
+    echo "$(ts) | $event | $*" >> "$LOG_FILE"
+}
+
+epoch_to_date() {
+    date -r "$1" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date -d "@$1" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo 'unknown'
+}
+
+epoch_to_time() {
+    date -r "$1" '+%H:%M:%S' 2>/dev/null || date -d "@$1" '+%H:%M:%S' 2>/dev/null || echo 'unknown'
+}
+
+fmt_duration() {
+    local total="$1"
+    if (( total < 0 )); then
+        total=$(( -total ))
+        local h=$((total / 3600)) m=$(((total % 3600) / 60))
+        echo "-${h}h ${m}m ago"
+    else
+        local h=$((total / 3600)) m=$(((total % 3600) / 60))
+        echo "${h}h ${m}m"
+    fi
+}
+
+get_token_info() {
+    local token
+    token=$(gcloud auth print-access-token 2>/dev/null) || { echo "NO_TOKEN"; return 1; }
+    curl -s "https://oauth2.googleapis.com/tokeninfo?access_token=$token"
+}
+
+# Session tracking: records when the user last authenticated
+save_session() {
+    local auth_type="$1" now_epoch
+    now_epoch=$(date +%s)
+    local expires_epoch=$((now_epoch + SESSION_DURATION))
+    python3 -c "
+import json
+data = {
+    'auth_type': '$auth_type',
+    'session_start': $now_epoch,
+    'session_expires': $expires_epoch,
+    'session_duration': $SESSION_DURATION,
+    'account': '$(gcloud config get-value account 2>/dev/null || echo unknown)'
+}
+with open('$SESSION_FILE', 'w') as f:
+    json.dump(data, f, indent=2)
+"
+}
+
+get_session() {
+    if [[ -f "$SESSION_FILE" ]]; then
+        python3 -c "
+import json, sys
+with open('$SESSION_FILE') as f:
+    d = json.load(f)
+print(d.get('session_start', 0))
+print(d.get('session_expires', 0))
+print(d.get('auth_type', 'unknown'))
+"
+    else
+        echo "0"
+        echo "0"
+        echo "none"
+    fi
+}
+
+print_session_status() {
+    local session_info start expires auth_type now_epoch remaining
+    session_info=$(get_session)
+    start=$(echo "$session_info" | sed -n '1p')
+    expires=$(echo "$session_info" | sed -n '2p')
+    auth_type=$(echo "$session_info" | sed -n '3p')
+    now_epoch=$(date +%s)
+
+    echo "=== Session (24h refresh token window) ==="
+    if [[ "$start" == "0" ]]; then
+        echo "  No session recorded. Run 'gcauth refresh' to start tracking."
+        return
+    fi
+
+    remaining=$((expires - now_epoch))
+    echo "  Authenticated: $(epoch_to_date "$start") (via $auth_type)"
+    echo "  Session dies:  $(epoch_to_date "$expires")"
+    echo "  Remaining:     $(fmt_duration $remaining)"
+
+    if (( remaining <= 0 )); then
+        echo "  🔴 SESSION EXPIRED — run 'gcauth refresh' to re-authenticate"
+    elif (( remaining < 3600 )); then
+        echo "  ⚠ Session expiring within 1 hour!"
+    elif (( remaining < 7200 )); then
+        echo "  ⚠ Session expiring within 2 hours"
+    fi
+}
+
+cmd_status() {
+    local account project
+    account=$(gcloud config get-value account 2>/dev/null || echo "none")
+    project=$(gcloud config get-value project 2>/dev/null || echo "none")
+
+    echo "Account:  $account"
+    echo "Project:  $project"
+    echo ""
+
+    # Session status (the important one)
+    print_session_status
+    echo ""
+
+    # User credential token (access token — auto-refreshes, less important)
+    echo "=== Access Token (auto-refreshes hourly) ==="
+    local info expires_in
+    info=$(get_token_info 2>/dev/null) || true
+    if [[ -n "$info" && "$info" != "NO_TOKEN" ]]; then
+        expires_in=$(echo "$info" | python3 -c "import json,sys; print(json.load(sys.stdin).get('expires_in','?'))" 2>/dev/null || echo "?")
+        if [[ "$expires_in" =~ ^[0-9]+$ ]]; then
+            local mins=$((expires_in / 60)) secs=$((expires_in % 60))
+            local now_epoch=$(($(date +%s)))
+            local expires_at_epoch=$((now_epoch + expires_in))
+            echo "  Expires at: $(epoch_to_time $expires_at_epoch) (${mins}m ${secs}s)"
+        else
+            echo "  Status: unexpected ($expires_in)"
+        fi
+    else
+        echo "  Status: no valid token — session likely expired"
+    fi
+
+    # ADC token
+    echo ""
+    echo "=== ADC Access Token (auto-refreshes hourly) ==="
+    local adc_token
+    adc_token=$(gcloud auth application-default print-access-token 2>/dev/null) || true
+    if [[ -n "$adc_token" ]]; then
+        local adc_info adc_expires
+        adc_info=$(curl -s "https://oauth2.googleapis.com/tokeninfo?access_token=$adc_token")
+        adc_expires=$(echo "$adc_info" | python3 -c "import json,sys; print(json.load(sys.stdin).get('expires_in','?'))" 2>/dev/null || echo "?")
+        if [[ "$adc_expires" =~ ^[0-9]+$ ]]; then
+            local amins=$((adc_expires / 60)) asecs=$((adc_expires % 60))
+            local adc_now=$(($(date +%s)))
+            local adc_exp_at=$((adc_now + adc_expires))
+            echo "  Expires at: $(epoch_to_time $adc_exp_at) (${amins}m ${asecs}s)"
+        else
+            echo "  Status: unexpected ($adc_expires)"
+        fi
+    else
+        echo "  Status: no ADC token available"
+    fi
+
+    log_event "STATUS_CHECK" "account=$account"
+}
+
+cmd_refresh() {
+    echo "=== Refreshing all Google Cloud credentials ==="
+    echo ""
+
+    # Step 1: gcloud auth login
+    echo "[1/2] gcloud auth login..."
+    if gcloud auth login "$@"; then
+        save_session "login+adc"
+        log_event "LOGIN_SUCCESS" "account=$(gcloud config get-value account 2>/dev/null)"
+        echo ""
+    else
+        log_event "LOGIN_FAIL" "exit_code=$?"
+        echo "Login failed. Aborting."
+        return 1
+    fi
+
+    # Step 2: gcloud auth application-default login
+    echo "[2/2] gcloud auth application-default login..."
+    if gcloud auth application-default login; then
+        log_event "ADC_LOGIN_SUCCESS" ""
+        echo ""
+    else
+        log_event "ADC_LOGIN_FAIL" "exit_code=$?"
+        echo "ADC login failed."
+        return 1
+    fi
+
+    echo "=== All credentials refreshed ==="
+    echo ""
+    cmd_status
+}
+
+cmd_login() {
+    echo "Running gcloud auth login..."
+    log_event "LOGIN_START" "user-initiated"
+    if gcloud auth login "$@"; then
+        save_session "login"
+        log_event "LOGIN_SUCCESS" "account=$(gcloud config get-value account 2>/dev/null)"
+        echo ""
+        cmd_status
+    else
+        log_event "LOGIN_FAIL" "exit_code=$?"
+        echo "Login failed."
+        return 1
+    fi
+}
+
+cmd_adc() {
+    echo "Running gcloud auth application-default login..."
+    log_event "ADC_LOGIN_START" "user-initiated"
+    if gcloud auth application-default login "$@"; then
+        save_session "adc"
+        log_event "ADC_LOGIN_SUCCESS" ""
+        echo ""
+        cmd_status
+    else
+        log_event "ADC_LOGIN_FAIL" "exit_code=$?"
+        echo "ADC login failed."
+        return 1
+    fi
+}
+
+cmd_log() {
+    if [[ ! -f "$LOG_FILE" ]]; then
+        echo "No auth log yet. Run 'gcauth refresh' to start logging."
+        return 0
+    fi
+    local lines="${1:-50}"
+    echo "=== Last $lines auth events ==="
+    tail -n "$lines" "$LOG_FILE"
+
+    echo ""
+    echo "=== Summary ==="
+    local total_logins
+    total_logins=$(grep -c 'LOGIN_SUCCESS\|ADC_LOGIN_SUCCESS' "$LOG_FILE" 2>/dev/null || echo "0")
+    local first_entry last_entry
+    first_entry=$(head -1 "$LOG_FILE" | cut -d'|' -f1 | xargs)
+    last_entry=$(tail -1 "$LOG_FILE" | cut -d'|' -f1 | xargs)
+    echo "  Total logins: $total_logins"
+    echo "  Log range: $first_entry → $last_entry"
+
+    if (( total_logins > 1 )); then
+        echo ""
+        echo "  Recent logins:"
+        grep 'LOGIN_SUCCESS\|ADC_LOGIN_SUCCESS' "$LOG_FILE" | tail -10 | while read -r line; do
+            echo "    $line"
+        done
+    fi
+}
+
+cmd_watch() {
+    local interval="${1:-60}"
+    echo "Watching session + token status every ${interval}s (Ctrl-C to stop)"
+    echo ""
+    while true; do
+        echo "--- $(ts) ---"
+
+        # Session status
+        local session_info start expires now_epoch remaining
+        session_info=$(get_session)
+        start=$(echo "$session_info" | sed -n '1p')
+        expires=$(echo "$session_info" | sed -n '2p')
+        now_epoch=$(date +%s)
+        remaining=$((expires - now_epoch))
+
+        if [[ "$start" != "0" ]]; then
+            echo "  Session: $(fmt_duration $remaining) remaining (dies $(epoch_to_time $expires))"
+            if (( remaining <= 0 )); then
+                echo "  🔴 SESSION EXPIRED"
+            elif (( remaining < 3600 )); then
+                echo "  ⚠ SESSION EXPIRING SOON"
+            fi
+            log_event "WATCH" "session_remaining=${remaining}s"
+        fi
+
+        # Access token
+        local info expires_in
+        info=$(get_token_info 2>/dev/null || echo "")
+        if [[ -n "$info" && "$info" != "NO_TOKEN" ]]; then
+            expires_in=$(echo "$info" | python3 -c "import json,sys; print(json.load(sys.stdin).get('expires_in','?'))" 2>/dev/null || echo "?")
+            if [[ "$expires_in" =~ ^[0-9]+$ ]]; then
+                local mins=$((expires_in / 60)) secs=$((expires_in % 60))
+                echo "  Access token: ${mins}m ${secs}s remaining"
+            else
+                echo "  Access token: ERROR ($expires_in)"
+            fi
+        else
+            echo "  Access token: EXPIRED or unavailable"
+            log_event "WATCH" "access_token_expired"
+        fi
+        echo ""
+        sleep "$interval"
+    done
+}
+
+cmd_diagnose() {
+    echo "=== Google Cloud Auth Diagnostics ==="
+    echo ""
+
+    echo "gcloud version:"
+    gcloud version 2>/dev/null | head -3 | sed 's/^/  /'
+    echo ""
+
+    echo "Auth configuration:"
+    echo "  disable_credentials: $(gcloud config get-value auth/disable_credentials 2>/dev/null || echo 'not set')"
+    echo "  token_host: $(gcloud config get-value auth/token_host 2>/dev/null || echo 'not set')"
+    echo "  impersonate_service_account: $(gcloud config get-value auth/impersonate_service_account 2>/dev/null || echo 'not set')"
+    echo ""
+
+    echo "Active account info:"
+    gcloud auth list 2>/dev/null | sed 's/^/  /'
+    echo ""
+
+    echo "ADC credential type:"
+    if [[ -f ~/.config/gcloud/application_default_credentials.json ]]; then
+        python3 -c "
+import json
+with open('$HOME/.config/gcloud/application_default_credentials.json') as f:
+    d = json.load(f)
+print(f'  Type: {d.get(\"type\",\"unknown\")}')
+print(f'  Has refresh_token: {\"refresh_token\" in d}')
+print(f'  Has client_id: {\"client_id\" in d}')
+" 2>/dev/null
+    else
+        echo "  No ADC file found"
+    fi
+    echo ""
+
+    echo "Relevant environment variables:"
+    for var in GOOGLE_APPLICATION_CREDENTIALS GOOGLE_CLOUD_PROJECT CLOUDSDK_AUTH_ACCESS_TOKEN \
+               CLOUDSDK_CORE_ACCOUNT CLOUDSDK_CONFIG GOOGLE_OAUTH_ACCESS_TOKEN; do
+        local val="${!var:-}"
+        if [[ -n "$val" ]]; then
+            echo "  $var = $val"
+        fi
+    done
+    echo "  (empty = not set, which is normal)"
+    echo ""
+
+    echo "Session policy:"
+    echo "  Configured duration: $((SESSION_DURATION / 3600))h (Google Cloud session control)"
+    print_session_status
+    echo ""
+
+    echo "Common causes of auth expiry:"
+    echo "  - Google Cloud session control policy (org-level, limits refresh token lifetime)"
+    echo "  - Google Workspace session duration policy"
+    echo "  - Refresh token auto-revoked after session control window"
+    echo ""
+
+    if [[ -f "$LOG_FILE" ]]; then
+        local login_count watch_expired
+        login_count=$(grep -c 'LOGIN_SUCCESS\|ADC_LOGIN_SUCCESS' "$LOG_FILE" 2>/dev/null || echo "0")
+        watch_expired=$(grep -c 'access_token_expired\|session_remaining=-' "$LOG_FILE" 2>/dev/null || echo "0")
+        echo "From auth log:"
+        echo "  Total logins recorded: $login_count"
+        echo "  Expirations caught: $watch_expired"
+    fi
+
+    log_event "DIAGNOSE" "ran diagnostics"
+}
+
+# Main dispatch
+case "${1:-help}" in
+    refresh) shift; cmd_refresh "$@" ;;
+    login)   shift; cmd_login "$@" ;;
+    adc)     shift; cmd_adc "$@" ;;
+    status)  cmd_status ;;
+    log)     shift; cmd_log "$@" ;;
+    watch)   shift; cmd_watch "$@" ;;
+    diagnose) cmd_diagnose ;;
+    help|--help|-h)
+        echo "gcauth — Google Cloud auth wrapper with session tracking"
+        echo ""
+        echo "Usage:"
+        echo "  gcauth refresh [args] Full re-auth: login + ADC in one shot"
+        echo "  gcauth login [args]   Login only (wraps gcloud auth login)"
+        echo "  gcauth adc [args]     ADC login only"
+        echo "  gcauth status         Show session + token status"
+        echo "  gcauth log [N]        Show last N auth events (default 50)"
+        echo "  gcauth watch [secs]   Poll status every N seconds (default 60)"
+        echo "  gcauth diagnose       Check for common auth expiry issues"
+        ;;
+    *)
+        echo "Unknown command: $1 (try 'gcauth help')"
+        exit 1
+        ;;
+esac

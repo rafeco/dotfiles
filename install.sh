@@ -72,7 +72,7 @@ fi
 echo ""
 echo "Installing utility scripts..."
 mkdir -p "$HOME/.local/bin"
-for script in gh-setup; do
+for script in gh-setup gcauth; do
   if [ -f "$DOTFILES_DIR/$script" ]; then
     link_file "$DOTFILES_DIR/$script" "$HOME/.local/bin/$script"
   fi

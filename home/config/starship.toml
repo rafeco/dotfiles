@@ -55,28 +55,31 @@ symbol = " "
 symbol = " "
 
 [custom.gcloud_expired]
-description = "gcloud token expired warning"
+description = "gcloud 24h session expired (refresh token revoked by org policy)"
 command = '''
-config=$(cat ~/.config/gcloud/active_config 2>/dev/null) || exit 1
-account=$(grep '^account' ~/.config/gcloud/configurations/config_"$config" 2>/dev/null | cut -d= -f2 | tr -d ' ') || exit 1
-sqlite3 ~/.config/gcloud/access_tokens.db \
-  "SELECT CASE WHEN token_expiry < datetime('now') THEN 'expired' ELSE '' END FROM access_tokens WHERE account_id = '$account';" 2>/dev/null \
-  | grep -q '^expired$' && echo "⚠ expired" || exit 1
+expires=$(grep -o '"session_expires": *[0-9]*' ~/.gcauth/session.json | grep -o '[0-9]*')
+[ -n "$expires" ] || exit 1
+now=$(date +%s)
+[ "$now" -gt "$expires" ] && echo '⚠ gc expired' || exit 1
 '''
-when = "test -f ~/.config/gcloud/access_tokens.db"
+when = "test -f ~/.gcauth/session.json"
 shell = ["bash", "--noprofile", "--norc"]
 format = "[$output](bold red) "
 
 [custom.gcloud_expiring]
-description = "gcloud token expiring soon warning"
+description = "gcloud 24h session expiring within 2 hours"
 command = '''
-config=$(cat ~/.config/gcloud/active_config 2>/dev/null) || exit 1
-account=$(grep '^account' ~/.config/gcloud/configurations/config_"$config" 2>/dev/null | cut -d= -f2 | tr -d ' ') || exit 1
-sqlite3 ~/.config/gcloud/access_tokens.db \
-  "SELECT CASE WHEN token_expiry >= datetime('now') AND token_expiry < datetime('now', '+30 minutes') THEN 'expiring' ELSE '' END FROM access_tokens WHERE account_id = '$account';" 2>/dev/null \
-  | grep -q '^expiring$' && echo "⚠ expiring" || exit 1
+expires=$(grep -o '"session_expires": *[0-9]*' ~/.gcauth/session.json | grep -o '[0-9]*')
+[ -n "$expires" ] || exit 1
+now=$(date +%s)
+remaining=$((expires - now))
+[ "$remaining" -le 0 ] && exit 1
+[ "$remaining" -lt 7200 ] || exit 1
+h=$((remaining / 3600))
+m=$(((remaining % 3600) / 60))
+echo "⚠ gc ${h}h${m}m"
 '''
-when = "test -f ~/.config/gcloud/access_tokens.db"
+when = "test -f ~/.gcauth/session.json"
 shell = ["bash", "--noprofile", "--norc"]
 format = "[$output](bold yellow) "
 
