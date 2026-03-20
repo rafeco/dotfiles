@@ -372,6 +372,19 @@ if [ -d "$HOME/.claude/bin" ]; then
   export PATH="$HOME/.claude/bin:$PATH"
 fi
 
+# Claude Code wrappers: auto-name session to current directory basename
+cc() {
+  CLAUDE_SESSION_NAME="$(basename "$PWD")" claude --name "$(basename "$PWD")" "$@"
+}
+
+ccr() {
+  CLAUDE_SESSION_NAME="$(basename "$PWD")" claude --name "$(basename "$PWD")" --resume "$@"
+}
+
+ccc() {
+  CLAUDE_SESSION_NAME="$(basename "$PWD")" claude --name "$(basename "$PWD")" --continue "$@"
+}
+
 # Add ~/.local/bin to PATH if it exists and isn't already there
 # Many tools install to ~/.local/bin (pip, cargo, etc.)
 if [ -d "$HOME/.local/bin" ] && [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
