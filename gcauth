@@ -2,8 +2,6 @@
 # gcauth — Google Cloud auth wrapper with session tracking and diagnostics
 # Usage:
 #   gcauth refresh        — re-auth both user + ADC credentials in one shot
-#   gcauth login          — run gcloud auth login, log the event
-#   gcauth adc            — run gcloud auth application-default login, log the event
 #   gcauth status         — show current token + session status
 #   gcauth log [N]        — show auth history
 #   gcauth watch [N]      — poll token status every N seconds (default 60)
@@ -174,62 +172,21 @@ cmd_refresh() {
     echo "=== Refreshing all Google Cloud credentials ==="
     echo ""
 
-    # Step 1: gcloud auth login
-    echo "[1/2] gcloud auth login..."
-    if gcloud auth login "$@"; then
+    echo "gcloud auth login --update-adc --force..."
+    if gcloud auth login --update-adc --force "$@"; then
         save_session "login+adc"
         log_event "LOGIN_SUCCESS" "account=$(gcloud config get-value account 2>/dev/null)"
+        log_event "ADC_LOGIN_SUCCESS" "via --update-adc"
         echo ""
     else
         log_event "LOGIN_FAIL" "exit_code=$?"
-        echo "Login failed. Aborting."
-        return 1
-    fi
-
-    # Step 2: gcloud auth application-default login
-    echo "[2/2] gcloud auth application-default login..."
-    if gcloud auth application-default login; then
-        log_event "ADC_LOGIN_SUCCESS" ""
-        echo ""
-    else
-        log_event "ADC_LOGIN_FAIL" "exit_code=$?"
-        echo "ADC login failed."
+        echo "Login failed."
         return 1
     fi
 
     echo "=== All credentials refreshed ==="
     echo ""
     cmd_status
-}
-
-cmd_login() {
-    echo "Running gcloud auth login..."
-    log_event "LOGIN_START" "user-initiated"
-    if gcloud auth login "$@"; then
-        save_session "login"
-        log_event "LOGIN_SUCCESS" "account=$(gcloud config get-value account 2>/dev/null)"
-        echo ""
-        cmd_status
-    else
-        log_event "LOGIN_FAIL" "exit_code=$?"
-        echo "Login failed."
-        return 1
-    fi
-}
-
-cmd_adc() {
-    echo "Running gcloud auth application-default login..."
-    log_event "ADC_LOGIN_START" "user-initiated"
-    if gcloud auth application-default login "$@"; then
-        save_session "adc"
-        log_event "ADC_LOGIN_SUCCESS" ""
-        echo ""
-        cmd_status
-    else
-        log_event "ADC_LOGIN_FAIL" "exit_code=$?"
-        echo "ADC login failed."
-        return 1
-    fi
 }
 
 cmd_log() {
@@ -373,10 +330,8 @@ print(f'  Has client_id: {\"client_id\" in d}')
 }
 
 # Main dispatch
-case "${1:-help}" in
+case "${1:-refresh}" in
     refresh) shift; cmd_refresh "$@" ;;
-    login)   shift; cmd_login "$@" ;;
-    adc)     shift; cmd_adc "$@" ;;
     status)  cmd_status ;;
     log)     shift; cmd_log "$@" ;;
     watch)   shift; cmd_watch "$@" ;;
@@ -386,8 +341,6 @@ case "${1:-help}" in
         echo ""
         echo "Usage:"
         echo "  gcauth refresh [args] Full re-auth: login + ADC in one shot"
-        echo "  gcauth login [args]   Login only (wraps gcloud auth login)"
-        echo "  gcauth adc [args]     ADC login only"
         echo "  gcauth status         Show session + token status"
         echo "  gcauth log [N]        Show last N auth events (default 50)"
         echo "  gcauth watch [secs]   Poll status every N seconds (default 60)"
