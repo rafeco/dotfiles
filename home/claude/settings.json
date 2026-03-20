@@ -1,20 +1,11 @@
 {
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/statusline.sh"
+    "command": "bash $HOME/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
     "superpowers@superpowers-marketplace": false,
-    "frontend-design@claude-code-plugins": true,
-    "claude-statusline@etsy-tools": true
-  },
-  "extraKnownMarketplaces": {
-    "etsy-tools": {
-      "source": {
-        "source": "github",
-        "repo": "etsy/claude-marketplace"
-      }
-    }
+    "frontend-design@claude-code-plugins": true
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "medium"
